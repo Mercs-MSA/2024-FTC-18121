@@ -26,7 +26,7 @@ public class DriveCode extends LinearOpMode {
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.FORWARD);
         backRight.setDirection(DcMotor.Direction.FORWARD);
 
         telemetry.addData("Status", "Initialized");
@@ -40,7 +40,7 @@ public class DriveCode extends LinearOpMode {
 
             double axial = -gamepad1.left_stick_y;
             double lateral = gamepad1.left_stick_x;
-            double yaw = gamepad1.right_stick_x * 1.75;
+            double yaw = gamepad1.right_stick_x;
 
             double frontLeftPower = axial + lateral + yaw;
             double frontRightPower = axial - lateral - yaw;
