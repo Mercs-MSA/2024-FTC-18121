@@ -12,13 +12,13 @@ public class DriveCode extends LinearOpMode {
     private DcMotor backLeft = null;
     private DcMotor frontRight = null;
     private DcMotor backRight = null;
-    private DcMotor imagine = null;
+    //private DcMotor imagine = null;
     public void intializeMotors() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
-        imagine = hardwareMap.get(DcMotor.class, "imagine");
+        //imagine = hardwareMap.get(DcMotor.class, "imagine");
     }
     @Override
     public void runOpMode() {
@@ -26,8 +26,8 @@ public class DriveCode extends LinearOpMode {
 
         ElapsedTime runtime = new ElapsedTime();
 
-        imagine.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        imagine.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //imagine.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //imagine.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         frontLeft.setDirection(DcMotor.Direction.REVERSE);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
@@ -51,41 +51,53 @@ public class DriveCode extends LinearOpMode {
             double frontRightPower = axial - lateral - yaw;
             double backLeftPower = axial - lateral + yaw;
             double backRightPower = axial + lateral - yaw;
-            double imaginePower = 0.5;
+            //double imaginePower = 0.5;
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
             max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
             max = Math.max(max, Math.abs(backLeftPower));
             max = Math.max(max, Math.abs(backRightPower));
-            max = Math.max(max, Math.abs(imaginePower));
+            //max = Math.max(max, Math.abs(imaginePower));
 
             if (max > 1.0) {
                 frontLeftPower  /= max;
                 frontLeftPower /= max;
                 backLeftPower   /= max;
                 backRightPower  /= max;
-                imaginePower  /= max;
+                //imaginePower  /= max;
             }
 
             if (gamepad1.a) {
-                imagine.setTargetPosition(90);
+                backLeft.setPower(.5);
+                telemetry.addData("IsBackLeftMoving", "Yeah");
             }
 
             if (gamepad1.b) {
-                imagine.setTargetPosition(0);
+                backRight.setPower(.5);
+                telemetry.addData("IsBackRightMoving", "Yeah");
+            }
+
+            if (gamepad1.x) {
+                frontLeft.setPower(.5);
+                telemetry.addData("IsFrontLeftMoving", "Yeah");
+            }
+
+            if (gamepad1.y) {
+                frontRight.setPower(.5);
+                telemetry.addData("IsFrontRightMoving", "Yeah");
             }
 
             frontLeft.setPower(frontLeftPower);
             frontRight.setPower(frontRightPower);
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
-            imagine.setPower(imaginePower);
+            //imagine.setPower(imaginePower);
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
-            telemetry.addData("Imaginary Motor", "%4.2f, %4.2f", imaginePower);
+            //telemetry.addData("Imaginary Motor", "%4.2f, %4.2f", imaginePower);
             telemetry.update();
         }
     }
