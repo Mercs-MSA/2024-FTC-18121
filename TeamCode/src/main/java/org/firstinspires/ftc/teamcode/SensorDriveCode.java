@@ -1,28 +1,35 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="Will It Crash?")
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-public class DriveCode extends LinearOpMode {
+@TeleOp(name="(SensorTest) Will It Crash?")
+
+public class SensorDriveCode extends LinearOpMode {
     private DcMotor frontLeft = null;
     private DcMotor backLeft = null;
     private DcMotor frontRight = null;
     private DcMotor backRight = null;
     //private DcMotor imagine = null;
+    private DistanceSensor distance;
+    private ColorSensor color;
+    private TouchSensor touch;
     public void intializeElectronics() {
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
         //imagine = hardwareMap.get(DcMotor.class, "imagine");
+        distance = hardwareMap.get(DistanceSensor.class, "Distance");
+        color = hardwareMap.get(ColorSensor.class, "Color");
+        touch = hardwareMap.get(TouchSensor.class, "Touch");
     }
     @Override
     public void runOpMode() {
@@ -72,6 +79,21 @@ public class DriveCode extends LinearOpMode {
                 //imaginePower  /= max;
             }
 
+            // If the distance in centimeters is less than 10, set the power to 0.3
+            if (distance.getDistance(DistanceUnit.INCH) < 10) {
+                frontLeft.setPower(.8);
+                telemetry.addData("DistanceIsMoreThanTen", "Negative");
+            } else {
+                telemetry.addData("DistanceIsMoreThanTen", "Positive");
+            }
+
+            // If the Magnetic Limit Switch is pressed, stop the motor
+            if (touch.isPressed()) {
+                telemetry.addData("MotorTouch", "Yeah");
+            } else { // Otherwise, run the motor
+                telemetry.addData("MotorTouch", "Nah");
+            }
+
             if (gamepad1.a) {
                 backLeft.setPower(.8);
                 telemetry.addData("IsBackLeftMoving", "Yeah");
@@ -102,6 +124,9 @@ public class DriveCode extends LinearOpMode {
             telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
             //telemetry.addData("Imaginary Motor", "%4.2f, %4.2f", imaginePower);
+            telemetry.addData("Red", color.red());
+            telemetry.addData("Green", color.green());
+            telemetry.addData("Blue", color.blue());
             telemetry.update();
         }
     }
