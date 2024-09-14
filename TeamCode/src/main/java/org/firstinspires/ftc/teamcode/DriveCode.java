@@ -24,9 +24,9 @@ public class DriveCode extends LinearOpMode {
 
         ElapsedTime runtime = new ElapsedTime();
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontLeft.setDirection(DcMotor.Direction.FORWARD);
         backLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.FORWARD);
 
         telemetry.addData("Status", "Initialized");
@@ -65,9 +65,9 @@ public class DriveCode extends LinearOpMode {
             backLeft.setPower(backLeftPower);
             backRight.setPower(backRightPower);
 
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+            telemetry.addData("Ohio Sigma", "YOUR MOM HAHAHAAHAAHAAHHHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + runtime.toString());
+            telemetry.addData("Gyatt Fanum Tax", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
+            telemetry.addData("Skibidi Rizz", "%4.2f, %4.2f", backLeftPower, backRightPower);
             telemetry.update();
         }
     }
