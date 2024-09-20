@@ -12,10 +12,20 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainCon
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@TeleOp(name="English or Spanish? (if u move ur gay)")
 public class DriveToAprilTag extends LinearOpMode {
     final double DESIRED_DISTANCE = 12.0;
 
@@ -31,6 +41,8 @@ public class DriveToAprilTag extends LinearOpMode {
     private DcMotor rightFrontDrive  = null;
     private DcMotor leftBackDrive    = null;
     private DcMotor rightBackDrive   = null;
+
+    private Limelight3A limelight;
 
     private static final boolean USE_WEBCAM = true;
     private static final int DESIRED_TAG_ID = -1;

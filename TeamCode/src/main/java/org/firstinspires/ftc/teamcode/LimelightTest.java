@@ -1,22 +1,20 @@
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.Range;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-public class LimelightTest {
+@TeleOp(name="Furries are awesome UwU")
+
+public class LimelightTest extends LinearOpMode{
 
     private Limelight3A limelight;
 
@@ -30,6 +28,8 @@ public class LimelightTest {
 
         limelight.start();
 
+        waitForStart();
+
         while (opModeIsActive()) {
             LLResult result = limelight.getLatestResult();
             if (result != null) {
@@ -38,6 +38,15 @@ public class LimelightTest {
                     telemetry.addData("tx", result.getTx());
                     telemetry.addData("ty", result.getTy());
                     telemetry.addData("Botpose", botpose.toString());
+
+                    List<LLResultTypes.FiducialResult> aprilTags = result.getFiducialResults();
+                    for (int i = 0; i < aprilTags.toArray().length; i++) {
+                        telemetry.addData("Fiducial ID's", aprilTags.get(i).getFiducialId());
+                        telemetry.addData("AprilTag Degrees", aprilTags.get(i).getTargetXDegrees());
+                        telemetry.addData("Target Vector", aprilTags.get(i).getCameraPoseTargetSpace().toString());
+                    }
+
+                    telemetry.update();
                 }
             }
         }
