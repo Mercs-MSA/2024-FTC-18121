@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.Servo;
+
 
 @TeleOp(name="Idk")
 
@@ -34,8 +36,9 @@ public class DriveCode extends LinearOpMode {
 
         waitForStart();
         runtime.reset();
-
+        
         while (opModeIsActive()) {
+
             double max;
 
             double axial = -gamepad1.left_stick_y;
