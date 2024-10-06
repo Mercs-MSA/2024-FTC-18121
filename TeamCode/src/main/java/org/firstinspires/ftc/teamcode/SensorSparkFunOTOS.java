@@ -1,118 +1,74 @@
+/*
+    SPDX-License-Identifier: MIT
+
+    Copyright (c) 2024 SparkFun Electronics
+*/
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 
-@TeleOp(name="Will It Crash?")
-
-public class DriveCode extends LinearOpMode {
-    public DcMotor frontLeft = null;
-    public DcMotor backLeft = null;
-    public DcMotor frontRight = null;
-    public DcMotor backRight = null;
-    private SparkFunOTOS myOtos = null;
+/*
+ * This OpMode illustrates how to use the SparkFun Qwiic Optical Tracking Odometry Sensor (OTOS)
+ *
+ * The OpMode assumes that the sensor is configured with a name of "sensor_otos".
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
+ *
+ * See the sensor's product page: https://www.sparkfun.com/products/24904
+ */
+@TeleOp(name = "Sensor: SparkFun OTOS", group = "Sensor")
+public class SensorSparkFunOTOS extends LinearOpMode {
+    // Create an instance of the sensor
+    SparkFunOTOS myOtos;
 
     @Override
-    public void runOpMode() {
-        intializeElectronics();
+    public void runOpMode() throws InterruptedException {
+        // Get a reference to the sensor
+        myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+
+        // All the configuration for the OTOS is done in this helper method, check it out!
         configureOtos();
 
-        ElapsedTime runtime = new ElapsedTime();
-
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
-        backRight.setDirection(DcMotor.Direction.FORWARD);
-
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
-
+        // Wait for the start button to be pressed
         waitForStart();
-        runtime.reset();
 
+        // Loop until the OpMode ends
         while (opModeIsActive()) {
-            double max;
-
-            double axial = -gamepad1.left_stick_y;
-            double lateral = gamepad1.left_stick_x;
-            double yaw = gamepad1.right_stick_x;
-
-            double frontLeftPower = axial + lateral + yaw;
-            double frontRightPower = axial - lateral - yaw;
-            double backLeftPower = axial - lateral + yaw;
-            double backRightPower = axial + lateral - yaw;
-
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-            max = Math.max(max, Math.abs(backLeftPower));
-            max = Math.max(max, Math.abs(backRightPower));
-
-            if (max > 1.0) {
-                frontLeftPower  /= max;
-                frontLeftPower /= max;
-                backLeftPower   /= max;
-                backRightPower  /= max;
-            }
-
             // Get the latest position, which includes the x and y coordinates, plus the
             // heading angle
             SparkFunOTOS.Pose2D pos = myOtos.getPosition();
 
-            if (gamepad1.a) {
-                backLeft.setPower(.8);
-                telemetry.addData("IsBackLeftMoving", "Yeah");
-            }
-
-            if (gamepad1.b) {
-                backRight.setPower(.8);
-                telemetry.addData("IsBackRightMoving", "Yeah");
-            }
-
-            if (gamepad1.x) {
-                frontLeft.setPower(.8);
-                telemetry.addData("IsFrontLeftMoving", "Yeah");
-            }
-
+            // Reset the tracking if the user requests it
             if (gamepad1.y) {
-                frontRight.setPower(.8);
-                telemetry.addData("IsFrontRightMoving", "Yeah");
+                myOtos.resetTracking();
             }
 
-            frontLeft.setPower(frontLeftPower);
-            frontRight.setPower(frontRightPower);
-            backLeft.setPower(backLeftPower);
-            backRight.setPower(backRightPower);
+            // Re-calibrate the IMU if the user requests it
+            if (gamepad1.x) {
+                myOtos.calibrateImu();
+            }
 
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+            // Inform user of available controls
             telemetry.addLine("Press Y (triangle) on Gamepad to reset tracking");
             telemetry.addLine("Press X (square) on Gamepad to calibrate the IMU");
             telemetry.addLine();
+
+            // Log the position to the telemetry
             telemetry.addData("X coordinate", pos.x);
             telemetry.addData("Y coordinate", pos.y);
             telemetry.addData("Heading angle", pos.h);
+
+            // Update the telemetry on the driver station
             telemetry.update();
         }
-    }
-
-    public void intializeElectronics() {
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
-
-        myOtos = hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
     }
 
     private void configureOtos() {
@@ -197,10 +153,10 @@ public class DriveCode extends LinearOpMode {
         SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
         myOtos.getVersionInfo(hwVersion, fwVersion);
 
-//        telemetry.addLine("OTOS configured! Press start to get position data!");
-//        telemetry.addLine();
-//        telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
-//        telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
+        telemetry.addLine("OTOS configured! Press start to get position data!");
+        telemetry.addLine();
+        telemetry.addLine(String.format("OTOS Hardware Version: v%d.%d", hwVersion.major, hwVersion.minor));
+        telemetry.addLine(String.format("OTOS Firmware Version: v%d.%d", fwVersion.major, fwVersion.minor));
         telemetry.update();
     }
 }
