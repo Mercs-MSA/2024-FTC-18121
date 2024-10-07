@@ -7,43 +7,35 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import java.util.List;
 
 
 public class SimplifiedOdometryRobot {
     // Adjust these numbers to suit your robot.
-    //private final double ODOM_INCHES_PER_COUNT   = 0.0029675;   //  GoBilda Odometry Pod (1/226.8)
-    //private final boolean INVERT_DRIVE_ODOMETRY  = false;       //  When driving FORWARD, the odometry value MUST increase.  If it does not, flip the value of this constant.
-    //private final boolean INVERT_STRAFE_ODOMETRY = true;       //  When strafing to the LEFT, the odometry value MUST increase.  If it does not, flip the value of this constant.
-
     private static final double DRIVE_GAIN          = 0.03;    // Strength of axial position control
     private static final double DRIVE_ACCEL         = 2.0;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double DRIVE_TOLERANCE     = 0.5;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double DRIVE_TOLERANCE     = 1.5;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double DRIVE_DEADBAND      = 0.2;     // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double DRIVE_MAX_AUTO      = 0.6;     // "default" Maximum Axial power limit during autonomous
 
     private static final double STRAFE_GAIN         = 0.03;    // Strength of lateral position control
     private static final double STRAFE_ACCEL        = 1.5;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double STRAFE_TOLERANCE    = 0.5;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double STRAFE_TOLERANCE    = 1.5;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double STRAFE_DEADBAND     = 0.2;     // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double STRAFE_MAX_AUTO     = 0.6;     // "default" Maximum Lateral power limit during autonomous
 
-    private static final double YAW_GAIN            = 0.018;    // Strength of Yaw position control
+    private static final double YAW_GAIN            = 0.03;    // Strength of Yaw position control
     private static final double YAW_ACCEL           = 3.0;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double YAW_TOLERANCE       = 1.0;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double YAW_TOLERANCE       = 2.0;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double YAW_DEADBAND        = 0.25;    // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double YAW_MAX_AUTO        = 0.6;     // "default" Maximum Yaw power limit during autonomous
 
@@ -53,9 +45,9 @@ public class SimplifiedOdometryRobot {
     public double heading           = 0; // Latest Robot heading from IMU
 
     // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
-    public ProportionalControl driveController     = new ProportionalControl(DRIVE_GAIN, DRIVE_ACCEL, DRIVE_MAX_AUTO, DRIVE_TOLERANCE, DRIVE_DEADBAND, false);
-    public ProportionalControl strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false);
-    public ProportionalControl yawController       = new ProportionalControl(YAW_GAIN, YAW_ACCEL, YAW_MAX_AUTO, YAW_TOLERANCE,YAW_DEADBAND, true);
+    final private ProportionalControl driveController     = new ProportionalControl(DRIVE_GAIN, DRIVE_ACCEL, DRIVE_MAX_AUTO, DRIVE_TOLERANCE, DRIVE_DEADBAND, false);
+    final private ProportionalControl strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false);
+    final private ProportionalControl yawController       = new ProportionalControl(YAW_GAIN, YAW_ACCEL, YAW_MAX_AUTO, YAW_TOLERANCE,YAW_DEADBAND, true);
 
     // ---  Private Members
 
@@ -65,13 +57,9 @@ public class SimplifiedOdometryRobot {
     private DcMotor leftBackDrive;      //  control the left back drive wheel
     private DcMotor rightBackDrive;     //  control the right back drive wheel
 
-    //private DcMotor driveEncoder;       //  the Axial (front/back) Odometry Module (may overlap with motor, or may not)
-    //private DcMotor strafeEncoder;      //  the Lateral (left/right) Odometry Module (may overlap with motor, or may not)
-
-    private LinearOpMode myOpMode;
-    //private IMU imu;
+    final private LinearOpMode myOpMode;
     private SparkFunOTOS myOtos = null;
-    private ElapsedTime holdTimer = new ElapsedTime();  // User for any motion requiring a hold time or timeout.
+    final private ElapsedTime holdTimer = new ElapsedTime();  // User for any motion requiring a hold time or timeout.
 
     private double rawDriveOdometer    = 0; // Unmodified axial odometer count
     private double driveOdometerOffset = 0; // Used to offset axial odometer
@@ -100,21 +88,16 @@ public class SimplifiedOdometryRobot {
         // motor/device must match the names assigned during the robot configuration.
 
         // !!!  Set the drive direction to ensure positive power drives each wheel forward.
-        leftFrontDrive  = setupDriveMotor("frontLeft", DcMotor.Direction.REVERSE);
+        leftFrontDrive  = setupDriveMotor("frontLeft", DcMotor.Direction.FORWARD);
         leftFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightFrontDrive = setupDriveMotor("frontRight", DcMotor.Direction.FORWARD);
+        rightFrontDrive = setupDriveMotor("frontRight", DcMotor.Direction.REVERSE);
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftBackDrive  = setupDriveMotor( "backLeft", DcMotor.Direction.REVERSE);
+        leftBackDrive  = setupDriveMotor( "backLeft", DcMotor.Direction.FORWARD);
         leftBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightBackDrive = setupDriveMotor( "backRight",DcMotor.Direction.FORWARD);
+        rightBackDrive = setupDriveMotor( "backRight",DcMotor.Direction.REVERSE);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //imu = myOpMode.hardwareMap.get(IMU.class, "imu");
+
         myOtos = myOpMode.hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
-
-        //  Connect to the encoder channels using the name of that channel.
-        //driveEncoder = myOpMode.hardwareMap.get(DcMotor.class, "backLeft");
-
-        //strafeEncoder = myOpMode.hardwareMap.get(DcMotor.class, "frontLeft");
 
         // Set all hubs to use the AUTO Bulk Caching mode for faster encoder reads
         List<LynxModule> allHubs = myOpMode.hardwareMap.getAll(LynxModule.class);
@@ -122,11 +105,6 @@ public class SimplifiedOdometryRobot {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        // Tell the software how the Control Hub is mounted on the robot to align the IMU XYZ axes correctly
-        RevHubOrientationOnRobot orientationOnRobot =
-                new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                                             RevHubOrientationOnRobot.UsbFacingDirection.FORWARD);
-        //imu.initialize(new IMU.Parameters(orientationOnRobot));
         myOtos.setLinearUnit(DistanceUnit.INCH);
         myOtos.setAngularUnit(AngleUnit.DEGREES);
         SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-3.3125, 1.75, 0);
@@ -137,7 +115,6 @@ public class SimplifiedOdometryRobot {
         myOtos.resetTracking();
         SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
         myOtos.setPosition(currentPosition);
-
 
         // zero out all the odometry readings.
         resetOdometry();
@@ -170,31 +147,19 @@ public class SimplifiedOdometryRobot {
         SparkFunOTOS.Pose2D pos = myOtos.getPosition();
         SparkFunOTOS.Pose2D vel  = myOtos.getVelocity();
 
-        //rawDriveOdometer = driveEncoder.getCurrentPosition() * (INVERT_DRIVE_ODOMETRY ? -1 : 1);
         rawDriveOdometer =  pos.y;
-        //rawStrafeOdometer = strafeEncoder.getCurrentPosition() * (INVERT_STRAFE_ODOMETRY ? -1 : 1);
         rawStrafeOdometer = pos.x;
-        //driveDistance = (rawDriveOdometer - driveOdometerOffset) * ODOM_INCHES_PER_COUNT;
         driveDistance = rawDriveOdometer - driveOdometerOffset;
-        //strafeDistance = (rawStrafeOdometer - strafeOdometerOffset) * ODOM_INCHES_PER_COUNT;
         strafeDistance = rawStrafeOdometer - strafeOdometerOffset;
 
-
-        //YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-//        AngularVelocity angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
-
-        //rawHeading  = orientation.getYaw(AngleUnit.DEGREES);
         rawHeading = pos.h;
         heading     = rawHeading - headingOffset;
-        //turnRate    = angularVelocity.zRotationRate;
         turnRate    = vel.h;
 
         if (showTelemetry) {
-//            myOpMode.telemetry.addData("Odom Ax:Lat", "%5.2f %5.2f", rawDriveOdometer - driveOdometerOffset, rawStrafeOdometer - strafeOdometerOffset);
-//            myOpMode.telemetry.addData("Dist Ax:Lat", "%5.2f %5.2f", driveDistance, strafeDistance);
-            myOpMode.telemetry.addData("Raw Heading", "%5.2f", rawHeading);
-            myOpMode.telemetry.addData("Heading - offset", "%5.2f", heading);
-            myOpMode.telemetry.addData("Heading Rate", "%5.2f", turnRate);
+            myOpMode.telemetry.addData("Odom Ax:Lat", "%5.2f %5.2f", rawDriveOdometer - driveOdometerOffset, rawStrafeOdometer - strafeOdometerOffset);
+            myOpMode.telemetry.addData("Dist Ax:Lat", "%5.2f %5.2f", driveDistance, strafeDistance);
+            myOpMode.telemetry.addData("Head Deg:Rate", "%5.2f %5.2f", rawHeading - headingOffset, turnRate);
         }
         return true;  // do this so this function can be included in the condition for a while loop to keep values fresh.
     }
@@ -327,9 +292,8 @@ public class SimplifiedOdometryRobot {
         rightBackDrive.setPower(rB);
 
         if (showTelemetry) {
-            myOpMode.telemetry.addData("Yaw in moveRobot", "%5.2f", yaw);
-//            myOpMode.telemetry.addData("Axes D:S:Y", "%5.2f %5.2f %5.2f", drive, strafe, yaw);
-//            myOpMode.telemetry.addData("Wheels lf:rf:lb:rb", "%5.2f %5.2f %5.2f %5.2f", lF, rF, lB, rB);
+            myOpMode.telemetry.addData("Axes D:S:Y", "%5.2f %5.2f %5.2f", drive, strafe, yaw);
+            myOpMode.telemetry.addData("Wheels lf:rf:lb:rb", "%5.2f %5.2f %5.2f %5.2f", lF, rF, lB, rB);
             myOpMode.telemetry.update(); //  Assume this is the last thing done in the loop.
         }
     }
@@ -418,9 +382,6 @@ class ProportionalControl {
         double error = setPoint - input;
         double dV = cycleTime.seconds() * accelLimit;
         double output;
-
-        // We need to figure out what the error value is doing in this controller TODO
-        // debug why it oscillates
         
         // normalize to +/- 180 if we are controlling heading
         if (circular) {
@@ -459,8 +420,8 @@ class ProportionalControl {
     /**
      * Saves a new setpoint and resets the output power history.
      * This call allows a temporary power limit to be set to override the default.
-     * @param setPoint
-     * @param powerLimit
+     * @param setPoint the new point to set
+     * @param powerLimit amount to limit power
      */
     public void reset(double setPoint, double powerLimit) {
         liveOutputLimit = Math.abs(powerLimit);
@@ -470,7 +431,7 @@ class ProportionalControl {
 
     /**
      * Saves a new setpoint and resets the output power history.
-     * @param setPoint
+     * @param setPoint the new point to set
      */
     public void reset(double setPoint) {
         liveOutputLimit = defaultOutputLimit;

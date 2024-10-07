@@ -2,16 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -19,28 +13,30 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
 
-@TeleOp(name="Furries are awesome UwU")
-
+@TeleOp(name="Limelight Test")
+@Disabled
 public class LimelightTest extends LinearOpMode{
+    final double SAFE_DRIVE_SPEED   = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
+    final double SAFE_STRAFE_SPEED  = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
+    final double SAFE_YAW_SPEED     = 0.5 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
 
-    private DcMotor frontLeft = null;
-    private DcMotor backLeft = null;
-    private DcMotor frontRight = null;
-    private DcMotor backRight = null;
-
-    private Limelight3A limelight;
-    IMU imu;
+    final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
 
     @Override
     public void runOpMode() {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        // Initialize the drive hardware & Turn on telemetry
+        robot.initialize(true);
 
-        imu = hardwareMap.get(IMU.class, "IMU");
+        // Wait for driver to press start
+        while(opModeInInit()) {
+            telemetry.addData(">", "Touch Play to drive");
 
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+            // Read and display sensor data
+            robot.readSensors();
+            telemetry.update();
+        }
+
+        Limelight3A limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         ElapsedTime runtime = new ElapsedTime();
 
@@ -50,22 +46,25 @@ public class LimelightTest extends LinearOpMode{
 
         limelight.start();
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
-        frontRight.setDirection(DcMotor.Direction.FORWARD);
-        backRight.setDirection(DcMotor.Direction.FORWARD);
-
         waitForStart();
         runtime.reset();
+
         boolean areThereTags = false;
         double degreesToRotate = 0;
-        while (opModeIsActive()) {
-            LLResult result = limelight.getLatestResult();
-            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
 
-            degreesToRotate = 0;
+        while (opModeIsActive()) {
+            robot.readSensors();
+
+            // Allow the driver to reset the gyro by pressing both small gamepad buttons
+            if(gamepad1.start && gamepad1.back){
+                robot.resetHeading();
+                robot.resetOdometry();
+            }
+
+            LLResult result = limelight.getLatestResult();
             
-            telemetry.addData("Yaw (Z)", "%.2f Deg. (Heading)", orientation.getYaw(AngleUnit.DEGREES));
+            telemetry.addData("Yaw (Z)", "%.2f Deg. (Heading)", robot.heading);
+
             if (result != null) {
                 if (result.isValid()) {
                     Pose3D botpose = result.getBotpose();
@@ -74,66 +73,36 @@ public class LimelightTest extends LinearOpMode{
                     telemetry.addData("Botpose", botpose.toString());
 
                     List<LLResultTypes.FiducialResult> aprilTags = result.getFiducialResults();
-                    for (int i = 0; i < aprilTags.toArray().length; i++) {
-                        areThereTags = true;
-                        degreesToRotate = aprilTags.get(i).getTargetXDegrees();
-                        telemetry.addData("Fiducial ID's", aprilTags.get(i).getFiducialId());
-                        telemetry.addData("AprilTag Degrees", aprilTags.get(i).getTargetXDegrees());
-                        telemetry.addData("Target Vector", aprilTags.get(i).getCameraPoseTargetSpace().toString());
-                        break;
-                    }
-                    if (aprilTags.toArray().length == 0) {
+                    if (aprilTags.isEmpty()) {
                         areThereTags = false;
+                    } else {
+                        areThereTags = true;
+                        degreesToRotate = aprilTags.get(0).getTargetXDegrees();
+
+                        telemetry.addData("Fiducial ID's", aprilTags.get(0).getFiducialId());
+                        telemetry.addData("AprilTag Degrees", aprilTags.get(0).getTargetXDegrees());
+                        telemetry.addData("Target Vector", aprilTags.get(0).getCameraPoseTargetSpace().toString());
                     }
                 }
             }
 
-            double max;
-
-            double axial = 0;
-            double lateral = 0;
+            double drive = 0;
+            double strafe = 0;
             double yaw = 0;
 
             if (gamepad1.a) {
-                telemetry.addData("a", "a");
                 if (areThereTags) {
-                    telemetry.addData("wow there", "are tags");
-                }
-
-                if (degreesToRotate > 0 && areThereTags) {
-                    yaw = .25;
-                }
-                else if (degreesToRotate < 0 && areThereTags) {
-                    yaw = -.25;
+                    if (degreesToRotate > 0) {
+                        yaw = 0.25;
+                    }
+                    else if (degreesToRotate < 0) {
+                        yaw = -0.25;
+                    }
                 }
             }
 
-            double frontLeftPower = axial + lateral + yaw;
-            double frontRightPower = axial - lateral - yaw;
-            double backLeftPower = axial - lateral + yaw;
-            double backRightPower = axial + lateral - yaw;
-
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
-            max = Math.max(max, Math.abs(backLeftPower));
-            max = Math.max(max, Math.abs(backRightPower));
-
-            if (max > 1.0) {
-                frontLeftPower  /= max;
-                frontLeftPower /= max;
-                backLeftPower   /= max;
-                backRightPower  /= max;
-            }
-
-            frontLeft.setPower(frontLeftPower);
-            frontRight.setPower(frontRightPower);
-            backLeft.setPower(backLeftPower);
-            backRight.setPower(backRightPower);
-
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", frontLeftPower, frontRightPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
+            //  Drive the wheels based on the desired axis motions
+            robot.moveRobot(drive, strafe, yaw);
 
             telemetry.update();
         }
