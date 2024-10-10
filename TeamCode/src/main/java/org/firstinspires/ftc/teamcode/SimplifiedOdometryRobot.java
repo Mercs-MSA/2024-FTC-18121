@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.List;
 
@@ -166,17 +168,35 @@ public class SimplifiedOdometryRobot {
 
     //  ########################  Mid level control functions.  #############################3#
 
+
+/**
+* @param distance This is the distance inputted that you want to travel in
+ */
+    public SparkFunOTOS.Pose2D doMath(double distance) {
+        double mathDistanceX;
+        double mathDistanceY;
+        mathDistanceY = distance * Math.sin(getHeading());
+        mathDistanceX = distance * Math.cos(getHeading());
+        return new SparkFunOTOS.Pose2D(mathDistanceX + driveDistance, mathDistanceY+strafeDistance, getHeading());
+    }
+
     /**
      * Drive in the axial (forward/reverse) direction, maintain the current heading and don't drift sideways
      * @param distanceInches  Distance to travel.  +ve = forward, -ve = reverse.
      * @param power Maximum power to apply.  This number should always be positive.
      * @param holdTime Minimum time (sec) required to hold the final position.  0 = no hold.
-     */
-    public void drive(double distanceInches, double power, double holdTime) {
+     */    public void drive(double distanceInches, double power, double holdTime) {
         resetOdometry();
 
-        driveController.reset(distanceInches, power);   // achieve desired drive distance
-        strafeController.reset(0);              // Maintain zero strafe drift
+        // do math here
+        double Xvalue;
+        double Yvalue;
+        SparkFunOTOS.Pose2D pos = doMath(distanceInches);
+        Xvalue = pos.x;
+        Yvalue = pos.y;
+
+        driveController.reset(Xvalue, power);   // achieve desired drive distance
+        strafeController.reset(Yvalue);              // Maintain zero strafe drift
         yawController.reset();                          // Maintain last turn heading
         holdTimer.reset();
 
