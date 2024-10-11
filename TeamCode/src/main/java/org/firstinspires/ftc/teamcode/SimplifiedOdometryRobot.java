@@ -16,8 +16,6 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.List;
 
@@ -43,8 +41,8 @@ public class SimplifiedOdometryRobot {
     private static final double YAW_MAX_AUTO        = 0.6;     // "default" Maximum Yaw power limit during autonomous
 
     // Public Members
-    public double driveDistance     = 0; // scaled axial distance (+ = forward)
-    public double strafeDistance    = 0; // scaled lateral distance (+ = left)
+    public double drivenDistance     = 0; // scaled axial distance (+ = forward)
+    public double strafedDistance    = 0; // scaled lateral distance (+ = left)
     public double heading           = 0; // Latest Robot heading from IMU
 
     // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
@@ -65,10 +63,8 @@ public class SimplifiedOdometryRobot {
     private SparkFunOTOS myOtos = null;
     final private ElapsedTime holdTimer = new ElapsedTime();  // User for any motion requiring a hold time or timeout.
 
-    private SparkFunOTOS.Pose2D rawDriveOdometer    = new SparkFunOTOS.Pose2D(0, 0, 0); // Unmodified axial odometer count
-    private SparkFunOTOS.Pose2D driveOdometerOffset = new SparkFunOTOS.Pose2D(0,0,0); // Used to offset axial odometer
-    private double rawStrafeOdometer   = 0; // Unmodified lateral odometer count
-    private double strafeOdometerOffset= 0; // Used to offset lateral odometer
+    private SparkFunOTOS.Pose2D currentRobotPosition = new SparkFunOTOS.Pose2D(0, 0, 0); // Unmodified axial odometer count
+    private SparkFunOTOS.Pose2D pathStartPoint = new SparkFunOTOS.Pose2D(0,0,0); // Used to offset axial odometer
     private double rawHeading       = 0; // Unmodified heading (degrees)
     private double headingOffset    = 0; // Used to offset heading
 
@@ -151,22 +147,19 @@ public class SimplifiedOdometryRobot {
         SparkFunOTOS.Pose2D pos = myOtos.getPosition();
         SparkFunOTOS.Pose2D vel  = myOtos.getVelocity();
 
-        rawDriveOdometer =  myOtos.getPosition();
-        rawStrafeOdometer = pos.x;
-        driveDistance = findHypotenuse();
-        strafeDistance = rawStrafeOdometer - strafeOdometerOffset;
+        currentRobotPosition =  myOtos.getPosition();
+        drivenDistance = distanceBetweenPoints(pathStartPoint, currentRobotPosition);
+        // TODO Figure out how compare slopes between target path and current path. Store in StrafedDistance
 
         rawHeading = pos.h;
         heading     = rawHeading - headingOffset;
         turnRate    = vel.h;
 
         if (showTelemetry) {
-            myOpMode.telemetry.addData("Odom Ax:Lat", "%5.2f %5.2f", rawDriveOdometer - driveOdometerOffset, rawStrafeOdometer - strafeOdometerOffset);
-            myOpMode.telemetry.addData("Dist Ax:Lat", "%5.2f %5.2f", driveDistance, strafeDistance);
             myOpMode.telemetry.addData("Head Deg:Rate", "%5.2f %5.2f", rawHeading - headingOffset, turnRate);
-            myOpMode.telemetry.addData("Target Drive", driveDistance);
-            myOpMode.telemetry.addData("Target Offset", driveOdometerOffset);
-            myOpMode.telemetry.addData("Target Raw", rawDriveOdometer);
+            myOpMode.telemetry.addData("Target Drive", drivenDistance);
+            myOpMode.telemetry.addData("Target Offset", pathStartPoint);
+            myOpMode.telemetry.addData("Target Raw", currentRobotPosition);
         }
         return true;  // do this so this function can be included in the condition for a while loop to keep values fresh.
     }
@@ -174,52 +167,43 @@ public class SimplifiedOdometryRobot {
     //  ########################  Mid level control functions.  #############################3#
 
 
-/**
-* @param distance This is the distance inputted that you want to travel in
- */
-    public SparkFunOTOS.Pose2D findAdjAndOpp(double distance) {
-        double mathDistanceX;
-        double mathDistanceY;
-        mathDistanceY = distance * Math.sin(Math.toRadians(getHeading()));
-        mathDistanceX = distance * Math.cos(Math.toRadians(getHeading()));
-        return new SparkFunOTOS.Pose2D(mathDistanceX + driveDistance, mathDistanceY+strafeDistance, getHeading());
+    /**
+     * @param distance This is the distance inputted that you want to travel in
+     */
+    public SparkFunOTOS.Pose2D findTargetPosition(double distance) {
+        double mathDistanceY = distance * Math.sin(Math.toRadians(getHeading()));
+        double mathDistanceX = distance * Math.cos(Math.toRadians(getHeading()));
+
+        return new SparkFunOTOS.Pose2D(mathDistanceX + currentRobotPosition.x, mathDistanceY + currentRobotPosition.y, getHeading());
     }
 
-    public double findhypotenuse(SparkFunOTOS.Pose2D raw, SparkFunOTOS.Pose2D off) {
-        double hypotenuse;
-        double angle;
-        double maths;
-        maths = Math.sqrt(Math.pow((raw.x - off.x), 2) + Math.pow((raw.y - off.y), 2));
-        angle = Math.tan(off.x/raw.x);
-        hypotenuse = raw.x * Math.sin();
-        // TODO UNFINISHED CHECK THE BOTTOM OF THE CODE
-        return hypotenuse;
+    public double distanceBetweenPoints(SparkFunOTOS.Pose2D pointA, SparkFunOTOS.Pose2D pointB) {
+        return Math.sqrt(Math.pow((pointB.x - pointA.x), 2) + Math.pow((pointB.y - pointA.y), 2));
     }
 
     /**
      * Drive in the axial (forward/reverse) direction, maintain the current heading and don't drift sideways
-     * @param distanceInches  Distance to travel.  +ve = forward, -ve = reverse.
+     * @param targetDistanceInInches  Distance to travel.  +ve = forward, -ve = reverse.
      * @param power Maximum power to apply.  This number should always be positive.
      * @param holdTime Minimum time (sec) required to hold the final position.  0 = no hold.
-     */    public void drive(double distanceInches, double power, double holdTime) {
+     */
+    public void drive(double targetDistanceInInches, double power, double holdTime) {
         resetOdometry();
 
-        // do math here
-        double Xvalue;
-        double Yvalue;
-        SparkFunOTOS.Pose2D pos = findAdjAndOpp(distanceInches);
-        Xvalue = pos.x;
-        Yvalue = pos.y;
+        // TODO if targetDistanceInInches is negative, we want to drive backwards. But drivenDistance will always be positive. So we need to set a boolean flag to indicate which direction to power the wheels.
 
-        driveController.reset(Xvalue, power);   // achieve desired drive distance
-        strafeController.reset(Yvalue);              // Maintain zero strafe drift
+        SparkFunOTOS.Pose2D targetPosition = findTargetPosition(targetDistanceInInches);
+        // TODO This is where we can use targetPosition and currentPosition to find slope of target path. We can use slope in ReadSensors()
+
+        driveController.reset(targetDistanceInInches, power);   // achieve desired drive distance
+        strafeController.reset(0);              // Maintain zero strafe drift
         yawController.reset();                          // Maintain last turn heading
         holdTimer.reset();
 
         while (myOpMode.opModeIsActive() && readSensors()){
 
             // implement desired axis powers
-            moveRobot(driveController.getOutput(driveDistance), strafeController.getOutput(strafeDistance), yawController.getOutput(heading));
+            moveRobot(driveController.getOutput(drivenDistance), strafeController.getOutput(strafedDistance), yawController.getOutput(heading));
 
             // Time to exit?
             if (driveController.inPosition() && yawController.inPosition()) {
@@ -251,7 +235,7 @@ public class SimplifiedOdometryRobot {
         while (myOpMode.opModeIsActive() && readSensors()){
 
             // implement desired axis powers
-            moveRobot(driveController.getOutput(driveDistance), strafeController.getOutput(strafeDistance), yawController.getOutput(heading));
+            moveRobot(driveController.getOutput(drivenDistance), strafeController.getOutput(strafedDistance), yawController.getOutput(heading));
 
             // Time to exit?
             if (strafeController.inPosition() && yawController.inPosition()) {
@@ -303,7 +287,7 @@ public class SimplifiedOdometryRobot {
      * @param yaw       Yaw axis power
      */
     public void moveRobot(double drive, double strafe, double yaw){
-
+        // TODO If our boolean flag is negative, invert the value of drive
         double lF = drive - strafe - yaw;
         double rF = drive + strafe + yaw;
         double lB = drive + strafe - yaw;
@@ -346,13 +330,14 @@ public class SimplifiedOdometryRobot {
      */
     public void resetOdometry() {
         readSensors();
-        driveOdometerOffset = rawDriveOdometer;
-//        driveDistance = 0.0;
-//        driveController.reset(0);
-//
-//        strafeOdometerOffset = rawStrafeOdometer;
-//        strafeDistance = 0.0;
-//        strafeController.reset(0);
+
+        pathStartPoint = currentRobotPosition;
+
+        drivenDistance = 0.0;
+        driveController.reset(0);
+
+        strafedDistance = 0.0;
+        strafeController.reset(0);
     }
 
     /**
