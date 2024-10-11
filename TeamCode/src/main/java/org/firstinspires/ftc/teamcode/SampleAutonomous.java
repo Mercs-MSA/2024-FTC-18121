@@ -40,9 +40,11 @@ public class SampleAutonomous extends LinearOpMode
             robot.drive(  12, 0.60, 0.25);
             robot.drive(  -12, 0.60, 0.25);
             robot.turnTo(180, 0.6, 0.25);
-            robot.drive(  12, 0.60, 0.25);
+            robot.drive(  -12, 0.60, 0.25);
             robot.turnTo(180, 0.6, 0.25);
             robot.drive(  12, 0.60, 0.25);
         }
     }
 }
+
+// Distance from last point

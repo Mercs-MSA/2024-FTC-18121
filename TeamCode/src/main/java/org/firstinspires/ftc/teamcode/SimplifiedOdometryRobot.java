@@ -4,6 +4,7 @@
     See the readme for a link to a video tutorial explaining the operation and limitations of the code.
  */
 
+// TODO CHECK THE BOTTOM OF THE CODE FOR WHAT TO WORK ON
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -51,6 +52,7 @@ public class SimplifiedOdometryRobot {
     final private ProportionalControl strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false);
     final private ProportionalControl yawController       = new ProportionalControl(YAW_GAIN, YAW_ACCEL, YAW_MAX_AUTO, YAW_TOLERANCE,YAW_DEADBAND, true);
 
+
     // ---  Private Members
 
     // Hardware interface Objects
@@ -63,8 +65,8 @@ public class SimplifiedOdometryRobot {
     private SparkFunOTOS myOtos = null;
     final private ElapsedTime holdTimer = new ElapsedTime();  // User for any motion requiring a hold time or timeout.
 
-    private double rawDriveOdometer    = 0; // Unmodified axial odometer count
-    private double driveOdometerOffset = 0; // Used to offset axial odometer
+    private SparkFunOTOS.Pose2D rawDriveOdometer    = new SparkFunOTOS.Pose2D(0, 0, 0); // Unmodified axial odometer count
+    private SparkFunOTOS.Pose2D driveOdometerOffset = new SparkFunOTOS.Pose2D(0,0,0); // Used to offset axial odometer
     private double rawStrafeOdometer   = 0; // Unmodified lateral odometer count
     private double strafeOdometerOffset= 0; // Used to offset lateral odometer
     private double rawHeading       = 0; // Unmodified heading (degrees)
@@ -149,9 +151,9 @@ public class SimplifiedOdometryRobot {
         SparkFunOTOS.Pose2D pos = myOtos.getPosition();
         SparkFunOTOS.Pose2D vel  = myOtos.getVelocity();
 
-        rawDriveOdometer =  pos.y;
+        rawDriveOdometer =  myOtos.getPosition();
         rawStrafeOdometer = pos.x;
-        driveDistance = rawDriveOdometer - driveOdometerOffset;
+        driveDistance = findHypotenuse();
         strafeDistance = rawStrafeOdometer - strafeOdometerOffset;
 
         rawHeading = pos.h;
@@ -162,6 +164,9 @@ public class SimplifiedOdometryRobot {
             myOpMode.telemetry.addData("Odom Ax:Lat", "%5.2f %5.2f", rawDriveOdometer - driveOdometerOffset, rawStrafeOdometer - strafeOdometerOffset);
             myOpMode.telemetry.addData("Dist Ax:Lat", "%5.2f %5.2f", driveDistance, strafeDistance);
             myOpMode.telemetry.addData("Head Deg:Rate", "%5.2f %5.2f", rawHeading - headingOffset, turnRate);
+            myOpMode.telemetry.addData("Target Drive", driveDistance);
+            myOpMode.telemetry.addData("Target Offset", driveOdometerOffset);
+            myOpMode.telemetry.addData("Target Raw", rawDriveOdometer);
         }
         return true;  // do this so this function can be included in the condition for a while loop to keep values fresh.
     }
@@ -172,12 +177,23 @@ public class SimplifiedOdometryRobot {
 /**
 * @param distance This is the distance inputted that you want to travel in
  */
-    public SparkFunOTOS.Pose2D doMath(double distance) {
+    public SparkFunOTOS.Pose2D findAdjAndOpp(double distance) {
         double mathDistanceX;
         double mathDistanceY;
-        mathDistanceY = distance * Math.sin(getHeading());
-        mathDistanceX = distance * Math.cos(getHeading());
+        mathDistanceY = distance * Math.sin(Math.toRadians(getHeading()));
+        mathDistanceX = distance * Math.cos(Math.toRadians(getHeading()));
         return new SparkFunOTOS.Pose2D(mathDistanceX + driveDistance, mathDistanceY+strafeDistance, getHeading());
+    }
+
+    public double findhypotenuse(SparkFunOTOS.Pose2D raw, SparkFunOTOS.Pose2D off) {
+        double hypotenuse;
+        double angle;
+        double maths;
+        maths = Math.sqrt(Math.pow((raw.x - off.x), 2) + Math.pow((raw.y - off.y), 2));
+        angle = Math.tan(off.x/raw.x);
+        hypotenuse = raw.x * Math.sin();
+        // TODO UNFINISHED CHECK THE BOTTOM OF THE CODE
+        return hypotenuse;
     }
 
     /**
@@ -191,7 +207,7 @@ public class SimplifiedOdometryRobot {
         // do math here
         double Xvalue;
         double Yvalue;
-        SparkFunOTOS.Pose2D pos = doMath(distanceInches);
+        SparkFunOTOS.Pose2D pos = findAdjAndOpp(distanceInches);
         Xvalue = pos.x;
         Yvalue = pos.y;
 
@@ -331,12 +347,12 @@ public class SimplifiedOdometryRobot {
     public void resetOdometry() {
         readSensors();
         driveOdometerOffset = rawDriveOdometer;
-        driveDistance = 0.0;
-        driveController.reset(0);
-
-        strafeOdometerOffset = rawStrafeOdometer;
-        strafeDistance = 0.0;
-        strafeController.reset(0);
+//        driveDistance = 0.0;
+//        driveController.reset(0);
+//
+//        strafeOdometerOffset = rawStrafeOdometer;
+//        strafeDistance = 0.0;
+//        strafeController.reset(0);
     }
 
     /**
@@ -468,3 +484,40 @@ class ProportionalControl {
         lastOutput = 0.0;
     }
 }
+
+/*
+*
+* RawDrive:
+* 1: (0) current position of robot on the Y axis, which is 0
+* 2: (0)current position of robot on the Y axis
+* 3: (5)current position of robot on the Y axis
+* 4: (10)current position of robot on the Y axis, which is around the target
+* 2a again: (10)current position of robot on the Y axis
+ * 3 again: (15)current position of robot on the Y axis
+ * 4 again: (20)current position of robot on the Y axis, which is around the target
+* Drive:
+* 1. 0
+* 2: 0
+* 3: 5
+* 4: 10
+* 2 again: 10
+* 3 again: 15
+* 4 again: 20
+* Drive Offset:
+* 1. (0)0
+* 2: (0)the robot's current position in y axis
+* 3: (0)Phase 2
+* 4: (0)phase 2
+* 2 again: (0)the robot's current position in y axis
+ * 3 again: (0)Phase 2
+ * 4 again: (0)phase 2
+*
+*
+* Make find hypotenuse take in 2 pose2d values and make it return
+*
+*
+*
+*
+*
+*
+ */
