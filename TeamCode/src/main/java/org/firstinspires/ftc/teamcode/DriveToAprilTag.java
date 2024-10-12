@@ -25,7 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name="English or Spanish? (if u move ur gay)")
+@TeleOp(name="Apriltag testing")
 public class DriveToAprilTag extends LinearOpMode {
     final double DESIRED_DISTANCE = 12.0;
 

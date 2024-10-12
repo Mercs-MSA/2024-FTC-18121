@@ -19,7 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
 
-@TeleOp(name="Furries are awesome UwU")
+@TeleOp(name="Limelight testing")
 
 public class LimelightTest extends LinearOpMode{
 
