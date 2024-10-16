@@ -19,7 +19,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.List;
 
-
 public class SimplifiedOdometryRobot {
     // Adjust these numbers to suit your robot.
     private static final double DRIVE_GAIN          = 0.03;    // Strength of axial position control
@@ -71,6 +70,8 @@ public class SimplifiedOdometryRobot {
     private double turnRate           = 0; // Latest Robot Turn Rate from IMU
     private boolean showTelemetry     = false;
 
+    private boolean otosEnabled       = false;
+
     // Robot Constructor
     public SimplifiedOdometryRobot(LinearOpMode opmode) {
         myOpMode = opmode;
@@ -89,35 +90,32 @@ public class SimplifiedOdometryRobot {
 
         // !!!  Set the drive direction to ensure positive power drives each wheel forward.
         leftFrontDrive  = setupDriveMotor("frontLeft", DcMotor.Direction.FORWARD);
-        leftFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFrontDrive = setupDriveMotor("frontRight", DcMotor.Direction.REVERSE);
-        rightFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBackDrive  = setupDriveMotor( "backLeft", DcMotor.Direction.FORWARD);
-        leftBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBackDrive = setupDriveMotor( "backRight",DcMotor.Direction.REVERSE);
-        rightBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        myOtos = myOpMode.hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+        if (otosEnabled) {
+            myOtos = myOpMode.hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
+            myOtos.setLinearUnit(DistanceUnit.INCH);
+            myOtos.setAngularUnit(AngleUnit.DEGREES);
+            SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-3.3125, 1.75, 0);
+            myOtos.setOffset(offset);
+            myOtos.setLinearScalar(0.9799016);
+            myOtos.setAngularScalar(0.9961217);
+            myOtos.calibrateImu();
+            myOtos.resetTracking();
+            SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+            myOtos.setPosition(currentPosition);
+        }
+
+        // zero out all the odometry readings.
+        resetOdometry();
 
         // Set all hubs to use the AUTO Bulk Caching mode for faster encoder reads
         List<LynxModule> allHubs = myOpMode.hardwareMap.getAll(LynxModule.class);
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-
-        myOtos.setLinearUnit(DistanceUnit.INCH);
-        myOtos.setAngularUnit(AngleUnit.DEGREES);
-        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-3.3125, 1.75, 0);
-        myOtos.setOffset(offset);
-        myOtos.setLinearScalar(0.9799016);
-        myOtos.setAngularScalar(0.9961217);
-        myOtos.calibrateImu();
-        myOtos.resetTracking();
-        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
-        myOtos.setPosition(currentPosition);
-
-        // zero out all the odometry readings.
-        resetOdometry();
 
         // Set the desired telemetry state
         this.showTelemetry = showTelemetry;
@@ -144,6 +142,8 @@ public class SimplifiedOdometryRobot {
      * @return true
      */
     public boolean readSensors() {
+        if (!otosEnabled) { return true; }
+
         SparkFunOTOS.Pose2D pos = myOtos.getPosition();
         SparkFunOTOS.Pose2D vel  = myOtos.getVelocity();
 
@@ -161,6 +161,7 @@ public class SimplifiedOdometryRobot {
             myOpMode.telemetry.addData("Target Offset", pathStartPoint);
             myOpMode.telemetry.addData("Target Raw", currentRobotPosition);
         }
+
         return true;  // do this so this function can be included in the condition for a while loop to keep values fresh.
     }
 
@@ -469,40 +470,3 @@ class ProportionalControl {
         lastOutput = 0.0;
     }
 }
-
-/*
-*
-* RawDrive:
-* 1: (0) current position of robot on the Y axis, which is 0
-* 2: (0)current position of robot on the Y axis
-* 3: (5)current position of robot on the Y axis
-* 4: (10)current position of robot on the Y axis, which is around the target
-* 2a again: (10)current position of robot on the Y axis
- * 3 again: (15)current position of robot on the Y axis
- * 4 again: (20)current position of robot on the Y axis, which is around the target
-* Drive:
-* 1. 0
-* 2: 0
-* 3: 5
-* 4: 10
-* 2 again: 10
-* 3 again: 15
-* 4 again: 20
-* Drive Offset:
-* 1. (0)0
-* 2: (0)the robot's current position in y axis
-* 3: (0)Phase 2
-* 4: (0)phase 2
-* 2 again: (0)the robot's current position in y axis
- * 3 again: (0)Phase 2
- * 4 again: (0)phase 2
-*
-*
-* Make find hypotenuse take in 2 pose2d values and make it return
-*
-*
-*
-*
-*
-*
- */

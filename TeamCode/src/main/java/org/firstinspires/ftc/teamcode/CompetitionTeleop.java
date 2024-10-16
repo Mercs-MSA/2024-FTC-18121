@@ -8,11 +8,15 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
-@TeleOp(name = "Limb testing")
-public class ServoTest extends LinearOpMode {
+@TeleOp(name = "Competition")
+public class CompetitionTeleop extends LinearOpMode {
     public Servo wrist = null;
     public CRServo intake = null;
     public DcMotor shoulder = null;
+
+    final double SAFE_DRIVE_SPEED   = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
+    final double SAFE_STRAFE_SPEED  = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
+    final double SAFE_YAW_SPEED     = 0.5 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
 
     /* This constant is the number of encoder ticks for each degree of rotation of the arm.
     To find this, we first need to consider the total gear reduction powering our arm.
@@ -64,11 +68,16 @@ public class ServoTest extends LinearOpMode {
     double armPosition = (int)ARM_COLLAPSED_INTO_ROBOT;
     double armPositionFudgeFactor;
 
+    // get an instance of the "Robot" class.
+    final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
+
     @Override
     public void runOpMode() {
         wrist = hardwareMap.get(Servo.class,"wrist");
         intake = hardwareMap.get(CRServo.class, "hand");
         shoulder = hardwareMap.get(DcMotor.class, "shoulder");
+
+        robot.initialize(true);
 
         /* Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to slow down
         much faster when it is coasting. This creates a much more controllable drivetrain. As the robot
@@ -89,6 +98,8 @@ public class ServoTest extends LinearOpMode {
         intake.setPower(INTAKE_OFF);
         wrist.setPosition(WRIST_FOLDED_IN);
 
+        robot.readSensors();
+
         /* Send telemetry message to signify robot waiting */
         telemetry.addLine("Robot Ready.");
         telemetry.update();
@@ -97,11 +108,19 @@ public class ServoTest extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (gamepad1.b) {
+            robot.readSensors();
+
+            // Allow the driver to reset the gyro by pressing both small gamepad buttons
+            if (gamepad1.start && gamepad1.back) {
+                robot.resetHeading();
+                robot.resetOdometry();
+            }
+
+            if (gamepad2.b) {
                 telemetry.addData("Intake?", "Out");
                 intake.setPower(INTAKE_DEPOSIT);
             }
-            else if (gamepad1.a) {
+            else if (gamepad2.a) {
                 telemetry.addData("Intake?", "In");
                 intake.setPower(INTAKE_COLLECT);
             }
@@ -110,42 +129,42 @@ public class ServoTest extends LinearOpMode {
                 intake.setPower(INTAKE_OFF);
             }
 
-            if(gamepad1.right_bumper){
+            if(gamepad2.right_bumper){
                 /* This is the intaking/collecting arm position */
                 armPosition = ARM_COLLECT;
                 wrist.setPosition(WRIST_FOLDED_OUT);
                 intake.setPower(INTAKE_COLLECT);
             }
-            else if (gamepad1.left_bumper){
+            else if (gamepad2.left_bumper){
                 /* This is about 20° up from the collecting position to clear the barrier
                 Note here that we don't set the wrist position or the intake power when we
                 select this "mode", this means that the intake and wrist will continue what
                 they were doing before we clicked left bumper. */
                 armPosition = ARM_CLEAR_BARRIER;
             }
-            else if (gamepad1.y){
+            else if (gamepad2.y){
                 /* This is the correct height to score the sample in the LOW BASKET */
                 armPosition = ARM_SCORE_SAMPLE_IN_LOW;
             }
-            else if (gamepad1.dpad_left) {
+            else if (gamepad2.dpad_left) {
                 /* This turns off the intake, folds in the wrist, and moves the arm
                 back to folded inside the robot. This is also the starting configuration */
                 armPosition = ARM_COLLAPSED_INTO_ROBOT;
                 intake.setPower(INTAKE_OFF);
                 wrist.setPosition(WRIST_FOLDED_IN);
             }
-            else if (gamepad1.dpad_right){
+            else if (gamepad2.dpad_right){
                 /* This is the correct height to score SPECIMEN on the HIGH CHAMBER */
                 armPosition = ARM_SCORE_SPECIMEN;
                 wrist.setPosition(WRIST_FOLDED_IN);
             }
-            else if (gamepad1.dpad_up){
+            else if (gamepad2.dpad_up){
                 /* This sets the arm to vertical to hook onto the LOW RUNG for hanging */
                 armPosition = ARM_ATTACH_HANGING_HOOK;
                 intake.setPower(INTAKE_OFF);
                 wrist.setPosition(WRIST_FOLDED_IN);
             }
-            else if (gamepad1.dpad_down){
+            else if (gamepad2.dpad_down){
                 /* this moves the arm down to lift the robot up once it has been hooked */
                 armPosition = ARM_WINCH_ROBOT;
                 intake.setPower(INTAKE_OFF);
@@ -188,6 +207,25 @@ public class ServoTest extends LinearOpMode {
             this by "typecasting" our double, into an int. This takes our fractional double and
             rounds it to the nearest whole number.
             */
+
+            // read joystick values and scale according to limits set at top of this file
+            double drive  = -gamepad1.left_stick_y * SAFE_DRIVE_SPEED;      //  Fwd/back on left stick
+            double strafe = -gamepad1.left_stick_x * SAFE_STRAFE_SPEED;     //  Left/Right on left stick
+            double yaw    = -gamepad1.right_stick_x * SAFE_YAW_SPEED;       //  Rotate on right stick
+
+            //  OR... For special conditions, Use the DPAD to make pure orthoginal motions
+            if (gamepad1.dpad_left) {
+                strafe = SAFE_DRIVE_SPEED / 2.0;
+            } else if (gamepad1.dpad_right) {
+                strafe = -SAFE_DRIVE_SPEED / 2.0;
+            } else if (gamepad1.dpad_up) {
+                drive = SAFE_DRIVE_SPEED / 2.0;
+            } else if (gamepad1.dpad_down) {
+                drive = -SAFE_STRAFE_SPEED / 2.0;
+            }
+
+            //  Drive the wheels based on the desired axis motions
+            robot.moveRobot(drive, strafe, yaw);
 
             /* Check to see if our arm is over the current limit, and report via telemetry. */
             if (((DcMotorEx) shoulder).isOverCurrent()){
