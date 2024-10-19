@@ -39,13 +39,13 @@ public class SampleAutonomous extends LinearOpMode
         // Run Auto if stop was not pressed.
         if (opModeIsActive())
         {
-            robot.drive(  12, 0.20, 0.25);
+            robot.drive(  24, 0.60, 0.25);
             //robot.drive(  -12, 0.20, 0.25);
-            robot.turnTo(180, 0.20, 0.25);
+            robot.turnTo(90, 0.60, 0.25);
             //robot.drive(  -12, 0.20, 0.25);
             //robot.turnTo(180, 0.20, 0.25);
-            robot.drive(  12, 0.20, 0.25);
-            robot.turnTo(180, 0.20, 0.25);
+            robot.drive(  24, 0.60, 0.25);
+            robot.turnTo(90, 0.60, 0.25);
         }
     }
 }

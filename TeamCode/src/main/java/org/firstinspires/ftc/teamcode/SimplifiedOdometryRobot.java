@@ -21,21 +21,21 @@ import java.util.List;
 
 public class SimplifiedOdometryRobot {
     // Adjust these numbers to suit your robot.
-    private static final double DRIVE_GAIN          = 0.03;    // Strength of axial position control
-    private static final double DRIVE_ACCEL         = 2.0;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double DRIVE_TOLERANCE     = 1.5;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double DRIVE_GAIN          = 0.05;    // Strength of axial position control
+    private static final double DRIVE_ACCEL         = 1.0;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
+    private static final double DRIVE_TOLERANCE     = 10;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double DRIVE_DEADBAND      = 0.2;     // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double DRIVE_MAX_AUTO      = 0.6;     // "default" Maximum Axial power limit during autonomous
 
-    private static final double STRAFE_GAIN         = 0.03;    // Strength of lateral position control
-    private static final double STRAFE_ACCEL        = 1.5;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double STRAFE_TOLERANCE    = 1.5;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double STRAFE_GAIN         = 0.05;    // Strength of lateral position control
+    private static final double STRAFE_ACCEL        = 1.0;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
+    private static final double STRAFE_TOLERANCE    = 10;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double STRAFE_DEADBAND     = 0.2;     // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double STRAFE_MAX_AUTO     = 0.6;     // "default" Maximum Lateral power limit during autonomous
 
-    private static final double YAW_GAIN            = 0.03;    // Strength of Yaw position control
-    private static final double YAW_ACCEL           = 3.0;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double YAW_TOLERANCE       = 2.0;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double YAW_GAIN            = 0.003;    // Strength of Yaw position control
+    private static final double YAW_ACCEL           = 0.5;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
+    private static final double YAW_TOLERANCE       = 16;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double YAW_DEADBAND        = 0.25;    // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double YAW_MAX_AUTO        = 0.6;     // "default" Maximum Yaw power limit during autonomous
 
@@ -44,13 +44,12 @@ public class SimplifiedOdometryRobot {
     public double strafedDistance    = 0; // scaled lateral distance (+ = left)
     public double heading           = 0; // Latest Robot heading from IMU
 
-    // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
-    final private ProportionalControl driveController     = new ProportionalControl(DRIVE_GAIN, DRIVE_ACCEL, DRIVE_MAX_AUTO, DRIVE_TOLERANCE, DRIVE_DEADBAND, false);
-    final private ProportionalControl strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false);
-    final private ProportionalControl yawController       = new ProportionalControl(YAW_GAIN, YAW_ACCEL, YAW_MAX_AUTO, YAW_TOLERANCE,YAW_DEADBAND, true);
-
-
     // ---  Private Members
+
+    // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
+    private ProportionalControl driveController;
+    private ProportionalControl strafeController;
+    private ProportionalControl yawController;
 
     // Hardware interface Objects
     private DcMotor leftFrontDrive;     //  control the left front drive wheel
@@ -68,9 +67,9 @@ public class SimplifiedOdometryRobot {
     private double headingOffset    = 0; // Used to offset heading
 
     private double turnRate           = 0; // Latest Robot Turn Rate from IMU
-    private boolean showTelemetry     = false;
+    private boolean showTelemetry     = true;
 
-    private boolean otosEnabled       = true;
+    private boolean otosEnabled       = false;
 
     private boolean driveInReverse    = false;
     private boolean strafeInReverse   = false;
@@ -88,6 +87,11 @@ public class SimplifiedOdometryRobot {
      */
     public void initialize(boolean showTelemetry)
     {
+        // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
+        this.driveController     = new ProportionalControl(DRIVE_GAIN, DRIVE_ACCEL, DRIVE_MAX_AUTO, DRIVE_TOLERANCE, DRIVE_DEADBAND, false, this.myOpMode, "drive");
+        this.strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false, this.myOpMode, "strafe");
+        this.yawController       = new ProportionalControl(YAW_GAIN, YAW_ACCEL, YAW_MAX_AUTO, YAW_TOLERANCE,YAW_DEADBAND, true, this.myOpMode, "rotate");
+
         // Initialize the hardware variables. Note that the strings used to 'get' each
         // motor/device must match the names assigned during the robot configuration.
 
@@ -103,8 +107,8 @@ public class SimplifiedOdometryRobot {
             myOtos.setAngularUnit(AngleUnit.DEGREES);
             SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-3.3125, 1.75, 0);
             myOtos.setOffset(offset);
-            myOtos.setLinearScalar(1.00);
-            myOtos.setAngularScalar(1.00);
+            myOtos.setLinearScalar(1.0113728);
+            myOtos.setAngularScalar(0.9961217);
             myOtos.calibrateImu();
             myOtos.resetTracking();
             SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
@@ -161,8 +165,8 @@ public class SimplifiedOdometryRobot {
         if (showTelemetry) {
             myOpMode.telemetry.addData("Head Deg:Rate", "%5.2f %5.2f", rawHeading - headingOffset, turnRate);
             myOpMode.telemetry.addData("Target Drive", drivenDistance);
-            myOpMode.telemetry.addData("Target Offset", pathStartPoint);
-            myOpMode.telemetry.addData("Target Raw", currentRobotPosition);
+            myOpMode.telemetry.addData("Target Offset", "%5.2f %5.2f %5.2f", pathStartPoint.x, pathStartPoint.y, pathStartPoint.h);
+            myOpMode.telemetry.addData("Target Raw", "%5.2f %5.2f %5.2f", currentRobotPosition.x, currentRobotPosition.y, currentRobotPosition.h);
         }
 
         return true;  // do this so this function can be included in the condition for a while loop to keep values fresh.
@@ -403,9 +407,14 @@ class ProportionalControl {
     double deadband;
     boolean circular;
     boolean inPosition;
+    String label;
+    LinearOpMode myOpMode;
     ElapsedTime cycleTime = new ElapsedTime();
 
-    public ProportionalControl(double gain, double accelLimit, double outputLimit, double tolerance, double deadband, boolean circular) {
+    boolean checkpointLarge;
+    boolean checkpointSmall;
+
+    public ProportionalControl(double gain, double accelLimit, double outputLimit, double tolerance, double deadband, boolean circular, LinearOpMode opmode, String label) {
         this.gain = gain;
         this.accelLimit = accelLimit;
         this.defaultOutputLimit = outputLimit;
@@ -413,6 +422,8 @@ class ProportionalControl {
         this.tolerance = tolerance;
         this.deadband = deadband;
         this.circular = circular;
+        this.myOpMode = opmode;
+        this.label = label;
         reset(0.0);
     }
 
@@ -433,7 +444,10 @@ class ProportionalControl {
             while (error <= -180) error += 360;
         }
 
-        inPosition = (Math.abs(error) < tolerance);
+        // inPosition = (Math.abs(error) < tolerance);
+        checkpointLarge = (Math.abs(error) < tolerance);
+        checkpointSmall = (Math.abs(error) < tolerance / 2);
+        inPosition = (Math.abs(error) < tolerance / 4);
 
         // Prevent any very slow motor output accumulation
         if (Math.abs(error) <= deadband) {
@@ -451,8 +465,15 @@ class ProportionalControl {
             }
         }
 
+        if (checkpointLarge) {
+            output = output / 2;
+        }
+        if (checkpointSmall) {
+            output = output / 2;
+        }
         lastOutput = output;
         cycleTime.reset();
+        myOpMode.telemetry.addData("Ctrl", "%s %5.2f %5.2f %5.2f %5.2f", this.label, error, output, setPoint, input);
         return output;
     }
 
@@ -490,5 +511,7 @@ class ProportionalControl {
         cycleTime.reset();
         inPosition = false;
         lastOutput = 0.0;
+        checkpointLarge = false;
+        checkpointSmall = false;
     }
 }
