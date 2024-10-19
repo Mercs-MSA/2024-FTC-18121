@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  */
 
 @Autonomous(name="Autonomous Test")
-@Disabled
+
 public class SampleAutonomous extends LinearOpMode
 {
     // get an instance of the "Robot" class.
@@ -39,12 +39,13 @@ public class SampleAutonomous extends LinearOpMode
         // Run Auto if stop was not pressed.
         if (opModeIsActive())
         {
-            robot.drive(  12, 0.60, 0.25);
-            robot.drive(  -12, 0.60, 0.25);
-            robot.turnTo(180, 0.6, 0.25);
-            robot.drive(  -12, 0.60, 0.25);
-            robot.turnTo(180, 0.6, 0.25);
-            robot.drive(  12, 0.60, 0.25);
+            robot.drive(  12, 0.20, 0.25);
+            //robot.drive(  -12, 0.20, 0.25);
+            robot.turnTo(180, 0.20, 0.25);
+            //robot.drive(  -12, 0.20, 0.25);
+            //robot.turnTo(180, 0.20, 0.25);
+            robot.drive(  12, 0.20, 0.25);
+            robot.turnTo(180, 0.20, 0.25);
         }
     }
 }

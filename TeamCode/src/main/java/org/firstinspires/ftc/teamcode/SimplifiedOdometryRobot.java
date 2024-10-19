@@ -70,7 +70,7 @@ public class SimplifiedOdometryRobot {
     private double turnRate           = 0; // Latest Robot Turn Rate from IMU
     private boolean showTelemetry     = false;
 
-    private boolean otosEnabled       = false;
+    private boolean otosEnabled       = true;
 
     private boolean driveInReverse    = false;
     private boolean strafeInReverse   = false;
@@ -103,8 +103,8 @@ public class SimplifiedOdometryRobot {
             myOtos.setAngularUnit(AngleUnit.DEGREES);
             SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-3.3125, 1.75, 0);
             myOtos.setOffset(offset);
-            myOtos.setLinearScalar(0.9799016);
-            myOtos.setAngularScalar(0.9961217);
+            myOtos.setLinearScalar(1.00);
+            myOtos.setAngularScalar(1.00);
             myOtos.calibrateImu();
             myOtos.resetTracking();
             SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
