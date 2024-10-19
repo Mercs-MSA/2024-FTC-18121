@@ -45,7 +45,7 @@ public class CompetitionTeleop extends LinearOpMode {
     as far from the starting position, decrease it. */
 
     final double ARM_COLLAPSED_INTO_ROBOT  = 0;
-    final double ARM_COLLECT               = 250 * ARM_TICKS_PER_DEGREE;
+    final double ARM_COLLECT               = 260 * ARM_TICKS_PER_DEGREE;
     final double ARM_CLEAR_BARRIER         = 230 * ARM_TICKS_PER_DEGREE;
     final double ARM_SCORE_SPECIMEN        = 160 * ARM_TICKS_PER_DEGREE;
     final double ARM_SCORE_SAMPLE_IN_LOW   = 160 * ARM_TICKS_PER_DEGREE;
@@ -116,11 +116,11 @@ public class CompetitionTeleop extends LinearOpMode {
                 robot.resetOdometry();
             }
 
-            if (gamepad2.b) {
+            if (gamepad2.left_trigger > 0.2) {
                 telemetry.addData("Intake?", "Out");
                 intake.setPower(INTAKE_DEPOSIT);
             }
-            else if (gamepad2.a) {
+            else if (gamepad2.right_trigger > 0.2) {
                 telemetry.addData("Intake?", "In");
                 intake.setPower(INTAKE_COLLECT);
             }
@@ -178,7 +178,7 @@ public class CompetitionTeleop extends LinearOpMode {
             both triggers an equal amount, they cancel and leave the arm at zero. But if one is larger
             than the other, it "wins out". This variable is then multiplied by our FUDGE_FACTOR.
             The FUDGE_FACTOR is the number of degrees that we can adjust the arm by with this function. */
-            armPositionFudgeFactor = FUDGE_FACTOR * (gamepad1.right_trigger + (-gamepad1.left_trigger));
+            armPositionFudgeFactor = FUDGE_FACTOR * gamepad2.left_stick_y;
 
             /* Here we set the target position of our arm to match the variable that was selected
             by the driver.
