@@ -72,6 +72,9 @@ public class SimplifiedOdometryRobot {
 
     private boolean otosEnabled       = false;
 
+    private boolean driveInReverse    = false;
+    private boolean strafeInReverse   = false;
+
     // Robot Constructor
     public SimplifiedOdometryRobot(LinearOpMode opmode) {
         myOpMode = opmode;
@@ -184,19 +187,23 @@ public class SimplifiedOdometryRobot {
 
     /**
      * Drive in the axial (forward/reverse) direction, maintain the current heading and don't drift sideways
-     * @param targetDistanceInInches  Distance to travel.  +ve = forward, -ve = reverse.
+     * @param targetDistance  Distance to travel.  +ve = forward, -ve = reverse.
      * @param power Maximum power to apply.  This number should always be positive.
      * @param holdTime Minimum time (sec) required to hold the final position.  0 = no hold.
      */
-    public void drive(double targetDistanceInInches, double power, double holdTime) {
+    public void drive(double targetDistance, double power, double holdTime) {
         resetOdometry();
 
-        // TODO if targetDistanceInInches is negative, we want to drive backwards. But drivenDistance will always be positive. So we need to set a boolean flag to indicate which direction to power the wheels.
+        // if our target distance is negative, we're trying to drive backwards. But we're about to calculate
+        // distance driven, which will always be a positive number. So we need to track our intention to drive backwards
+        if (targetDistance < 0) {
+            driveInReverse = true;
+        }
 
-        SparkFunOTOS.Pose2D targetPosition = findTargetPosition(targetDistanceInInches);
+        SparkFunOTOS.Pose2D targetPosition = findTargetPosition(targetDistance);
         // TODO This is where we can use targetPosition and currentPosition to find slope of target path. We can use slope in ReadSensors()
 
-        driveController.reset(targetDistanceInInches, power);   // achieve desired drive distance
+        driveController.reset(targetDistance, power);   // achieve desired drive distance
         strafeController.reset(0);              // Maintain zero strafe drift
         yawController.reset();                          // Maintain last turn heading
         holdTimer.reset();
@@ -221,15 +228,23 @@ public class SimplifiedOdometryRobot {
 
     /**
      * Strafe in the lateral (left/right) direction, maintain the current heading and don't drift fwd/bwd
-     * @param distanceInches  Distance to travel.  +ve = left, -ve = right.
+     * @param targetDistance  Distance to travel.  +ve = left, -ve = right.
      * @param power Maximum power to apply.  This number should always be positive.
      * @param holdTime Minimum time (sec) required to hold the final position.  0 = no hold.
      */
-    public void strafe(double distanceInches, double power, double holdTime) {
+    public void strafe(double targetDistance, double power, double holdTime) {
         resetOdometry();
 
+        // if our target distance is negative, we're trying to drive backwards. But we're about to calculate
+        // distance driven, which will always be a positive number. So we need to track our intention to drive backwards
+        if (targetDistance < 0) {
+            strafeInReverse = true;
+        }
+
+        SparkFunOTOS.Pose2D targetPosition = findTargetPosition(targetDistance);
+
         driveController.reset(0.0);             //  Maintain zero drive drift
-        strafeController.reset(distanceInches, power);  // Achieve desired Strafe distance
+        strafeController.reset(targetDistance, power);  // Achieve desired Strafe distance
         yawController.reset();                          // Maintain last turn angle
         holdTimer.reset();
 
@@ -288,7 +303,10 @@ public class SimplifiedOdometryRobot {
      * @param yaw       Yaw axis power
      */
     public void moveRobot(double drive, double strafe, double yaw){
-        // TODO If our boolean flag is negative, invert the value of drive
+        // If our intention was to drive/strafe in reverse, then we need to invert the power signal being sent from our controller
+        if (driveInReverse) { drive *= -1; }
+        if (strafeInReverse) { strafe *= -1; }
+
         double lF = drive - strafe - yaw;
         double rF = drive + strafe + yaw;
         double lB = drive + strafe - yaw;
@@ -324,6 +342,10 @@ public class SimplifiedOdometryRobot {
      */
     public void stopRobot() {
         moveRobot(0,0,0);
+
+        // whenever the robot stops we should reset our drive/strafe direction intention
+        driveInReverse = false;
+        strafeInReverse = false;
     }
 
     /**
