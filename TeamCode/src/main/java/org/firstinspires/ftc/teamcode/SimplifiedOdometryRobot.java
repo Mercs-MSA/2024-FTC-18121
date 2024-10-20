@@ -11,6 +11,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -39,6 +40,13 @@ public class SimplifiedOdometryRobot {
     private static final double YAW_DEADBAND        = 0.25;    // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double YAW_MAX_AUTO        = 0.6;     // "default" Maximum Yaw power limit during autonomous
 
+    private static final double OTOS_LINEAR_SCALAR  = 1.0113728;
+    private static final double OTOS_ANGULAR_SCALAR = 0.9961217;
+
+    private static final double OTOS_MOUNTING_OFFSET_X = -3.3125;
+    private static final double OTOS_MOUNTING_OFFSET_Y = 1.75;
+    private static final double OTOS_MOUNTING_OFFSET_Z = 0;
+
     // Public Members
     public double drivenDistance     = 0; // scaled axial distance (+ = forward)
     public double strafedDistance    = 0; // scaled lateral distance (+ = left)
@@ -57,22 +65,28 @@ public class SimplifiedOdometryRobot {
     private DcMotor leftBackDrive;      //  control the left back drive wheel
     private DcMotor rightBackDrive;     //  control the right back drive wheel
 
-    final private LinearOpMode myOpMode;
-    private SparkFunOTOS myOtos = null;
-    final private ElapsedTime holdTimer = new ElapsedTime();  // User for any motion requiring a hold time or timeout.
+    private final LinearOpMode myOpMode;
+    private SparkFunOTOS myOtos;
+    private Datalog datalog;
+    private VoltageSensor battery;
+
+    private final ElapsedTime holdTimer              = new ElapsedTime();  // User for any motion requiring a hold time or timeout.
 
     private SparkFunOTOS.Pose2D currentRobotPosition = new SparkFunOTOS.Pose2D(0, 0, 0); // Unmodified axial odometer count
-    private SparkFunOTOS.Pose2D pathStartPoint = new SparkFunOTOS.Pose2D(0,0,0); // Used to offset axial odometer
-    private double rawHeading       = 0; // Unmodified heading (degrees)
-    private double headingOffset    = 0; // Used to offset heading
+    private SparkFunOTOS.Pose2D pathStartPoint       = new SparkFunOTOS.Pose2D(0,0,0); // Used to offset axial odometer
+    private double rawHeading         = 0; // Unmodified heading (degrees)
+    private double headingOffset      = 0; // Used to offset heading
 
     private double turnRate           = 0; // Latest Robot Turn Rate from IMU
-    private boolean showTelemetry     = true;
+    private boolean showTelemetry     = false;
 
-    private boolean otosEnabled       = false;
+    private final boolean otosEnabled = false;
 
     private boolean driveInReverse    = false;
     private boolean strafeInReverse   = false;
+
+    private boolean logData           = false;
+    private int datalogCounter        = 0;
 
     // Robot Constructor
     public SimplifiedOdometryRobot(LinearOpMode opmode) {
@@ -85,8 +99,24 @@ public class SimplifiedOdometryRobot {
      *  Perform any set-up all the hardware devices.
      * @param showTelemetry  Set to true if you want telemetry to be displayed by the robot sensor/drive functions.
      */
-    public void initialize(boolean showTelemetry)
+    public void initialize(boolean showTelemetry, boolean logData)
     {
+        // Set the desired telemetry/logger states
+        this.showTelemetry = showTelemetry;
+        this.logData = logData;
+
+        // Initialize the datalog
+        if (this.logData) {
+            datalog = new Datalog("datalog_01");
+
+            // You do not need to fill every field of the datalog
+            // every time you call writeLine(); those fields will simply
+            // contain the last value.
+            datalog.opModeStatus.set("INIT");
+            datalog.battery.set(battery.getVoltage());
+            datalog.writeLine();
+        }
+
         // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
         this.driveController     = new ProportionalControl(DRIVE_GAIN, DRIVE_ACCEL, DRIVE_MAX_AUTO, DRIVE_TOLERANCE, DRIVE_DEADBAND, false, this.myOpMode, "drive");
         this.strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false, this.myOpMode, "strafe");
@@ -101,18 +131,10 @@ public class SimplifiedOdometryRobot {
         leftBackDrive  = setupDriveMotor( "backLeft", DcMotor.Direction.FORWARD);
         rightBackDrive = setupDriveMotor( "backRight",DcMotor.Direction.REVERSE);
 
+        battery = myOpMode.hardwareMap.voltageSensor.get("Control Hub");
+
         if (otosEnabled) {
-            myOtos = myOpMode.hardwareMap.get(SparkFunOTOS.class, "sensor_otos");
-            myOtos.setLinearUnit(DistanceUnit.INCH);
-            myOtos.setAngularUnit(AngleUnit.DEGREES);
-            SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(-3.3125, 1.75, 0);
-            myOtos.setOffset(offset);
-            myOtos.setLinearScalar(1.0113728);
-            myOtos.setAngularScalar(0.9961217);
-            myOtos.calibrateImu();
-            myOtos.resetTracking();
-            SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
-            myOtos.setPosition(currentPosition);
+            myOtos = setupSparkfunOTOS("sensor_otos");
         }
 
         // zero out all the odometry readings.
@@ -123,9 +145,6 @@ public class SimplifiedOdometryRobot {
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
-
-        // Set the desired telemetry state
-        this.showTelemetry = showTelemetry;
     }
 
     /**
@@ -141,6 +160,33 @@ public class SimplifiedOdometryRobot {
         aMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         aMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);  // Requires motor encoder cables to be hooked up.
         return aMotor;
+    }
+
+    private SparkFunOTOS setupSparkfunOTOS(String deviceName) {
+        SparkFunOTOS sensor = myOpMode.hardwareMap.get(SparkFunOTOS.class, deviceName);
+
+        sensor.setLinearUnit(DistanceUnit.INCH);
+        sensor.setAngularUnit(AngleUnit.DEGREES);
+
+        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(OTOS_MOUNTING_OFFSET_X, OTOS_MOUNTING_OFFSET_Y, OTOS_MOUNTING_OFFSET_Z);
+        sensor.setOffset(offset);
+
+        sensor.setLinearScalar(OTOS_LINEAR_SCALAR);
+        sensor.setAngularScalar(OTOS_ANGULAR_SCALAR);
+
+        sensor.calibrateImu();
+        sensor.resetTracking();
+
+        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
+        sensor.setPosition(currentPosition);
+
+        return sensor;
+    }
+
+    public void activate() {
+        if (this.logData) {
+            datalog.opModeStatus.set("RUNNING");
+        }
     }
 
     /**
@@ -164,7 +210,7 @@ public class SimplifiedOdometryRobot {
 
         if (showTelemetry) {
             myOpMode.telemetry.addData("Head Deg:Rate", "%5.2f %5.2f", rawHeading - headingOffset, turnRate);
-            myOpMode.telemetry.addData("Target Drive", drivenDistance);
+            myOpMode.telemetry.addData("Dist Driven To Target", drivenDistance);
             myOpMode.telemetry.addData("Target Offset", "%5.2f %5.2f %5.2f", pathStartPoint.x, pathStartPoint.y, pathStartPoint.h);
             myOpMode.telemetry.addData("Target Raw", "%5.2f %5.2f %5.2f", currentRobotPosition.x, currentRobotPosition.y, currentRobotPosition.h);
         }
@@ -337,7 +383,16 @@ public class SimplifiedOdometryRobot {
         if (showTelemetry) {
             myOpMode.telemetry.addData("Axes D:S:Y", "%5.2f %5.2f %5.2f", drive, strafe, yaw);
             myOpMode.telemetry.addData("Wheels lf:rf:lb:rb", "%5.2f %5.2f %5.2f %5.2f", lF, rF, lB, rB);
-            myOpMode.telemetry.update(); //  Assume this is the last thing done in the loop.
+        }
+
+        if (logData) {
+            datalog.loopCounter.set(datalogCounter);
+            datalog.battery.set(battery.getVoltage());
+            datalog.leftFrontEncoder.set(lF);
+            datalog.rightFrontEncoder.set(rF);
+            datalog.leftBackEncoder.set(lB);
+            datalog.rightBackEncoder.set(rB);
+            datalog.writeLine();
         }
     }
 
@@ -380,11 +435,8 @@ public class SimplifiedOdometryRobot {
     public double getHeading() {return heading;}
     public double getTurnRate() {return turnRate;}
 
-    /**
-     * Set the drive telemetry on or off
-     */
-    public void showTelemetry(boolean show){
-        showTelemetry = show;
+    public void incrementOpModeCounter() {
+        this.datalogCounter++;
     }
 }
 
@@ -513,5 +565,58 @@ class ProportionalControl {
         lastOutput = 0.0;
         checkpointLarge = false;
         checkpointSmall = false;
+    }
+}
+
+/*
+ * This class encapsulates all the fields that will go into the datalog.
+ */
+class Datalog
+{
+    // The underlying datalogger object - it cares only about an array of loggable fields
+    private final Datalogger datalogger;
+
+    // These are all of the fields that we want in the datalog.
+    // Note that order here is NOT important. The order is important in the setFields() call below
+    public Datalogger.GenericField opModeStatus = new Datalogger.GenericField("OpModeStatus");
+    public Datalogger.GenericField loopCounter  = new Datalogger.GenericField("Loop Counter");
+
+    public Datalogger.GenericField leftFrontEncoder = new Datalogger.GenericField("LF Enc");
+    public Datalogger.GenericField rightFrontEncoder = new Datalogger.GenericField("RF Enc");
+    public Datalogger.GenericField leftBackEncoder = new Datalogger.GenericField("LB Enc");
+    public Datalogger.GenericField rightBackEncoder = new Datalogger.GenericField("RB Enc");
+    public Datalogger.GenericField battery      = new Datalogger.GenericField("Battery");
+
+    public Datalog(String name)
+    {
+        // Build the underlying datalog object
+        datalogger = new Datalogger.Builder()
+
+                // Pass through the filename
+                .setFilename(name)
+
+                // Request an automatic timestamp field
+                .setAutoTimestamp(Datalogger.AutoTimestamp.DECIMAL_SECONDS)
+
+                // Tell it about the fields we care to log.
+                // Note that order *IS* important here! The order in which we list
+                // the fields is the order in which they will appear in the log.
+                .setFields(
+                        opModeStatus,
+                        loopCounter,
+                        leftFrontEncoder,
+                        rightFrontEncoder,
+                        leftBackEncoder,
+                        rightBackEncoder,
+                        battery
+                )
+                .build();
+    }
+
+    // Tell the datalogger to gather the values of the fields
+    // and write a new line in the log.
+    public void writeLine()
+    {
+        datalogger.writeLine();
     }
 }

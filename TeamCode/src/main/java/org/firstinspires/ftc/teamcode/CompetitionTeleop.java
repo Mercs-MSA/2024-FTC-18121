@@ -77,7 +77,7 @@ public class CompetitionTeleop extends LinearOpMode {
         intake = hardwareMap.get(CRServo.class, "hand");
         shoulder = hardwareMap.get(DcMotor.class, "shoulder");
 
-        robot.initialize(true);
+        robot.initialize(true, true);
 
         /* Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to slow down
         much faster when it is coasting. This creates a much more controllable drivetrain. As the robot
@@ -106,6 +106,8 @@ public class CompetitionTeleop extends LinearOpMode {
 
         /* Wait for the game driver to press play */
         waitForStart();
+
+        robot.activate();
 
         while (opModeIsActive()) {
             robot.readSensors();
@@ -237,6 +239,7 @@ public class CompetitionTeleop extends LinearOpMode {
             telemetry.addData("arm Encoder: ", shoulder.getCurrentPosition());
 
             telemetry.update();
+            robot.incrementOpModeCounter();
         }
     }
 }

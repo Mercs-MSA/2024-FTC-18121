@@ -27,14 +27,15 @@ public class SampleAutonomous extends LinearOpMode
     @Override public void runOpMode()
     {
         // Initialize the robot hardware & Turn on telemetry
-        robot.initialize(true);
+        robot.initialize(true, true);
 
         // Wait for driver to press start
         telemetry.addData(">", "Touch Play to run Auto");
-        telemetry.update();
 
         waitForStart();
+
         robot.resetHeading();  // Reset heading to set a baseline for Auto
+        robot.activate();
 
         // Run Auto if stop was not pressed.
         if (opModeIsActive())
@@ -47,7 +48,8 @@ public class SampleAutonomous extends LinearOpMode
             robot.drive(  24, 0.60, 0.25);
             robot.turnTo(90, 0.60, 0.25);
         }
+
+        telemetry.update();
+        robot.incrementOpModeCounter();
     }
 }
-
-// Distance from last point

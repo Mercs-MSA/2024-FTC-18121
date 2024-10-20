@@ -25,7 +25,7 @@ public class LimelightTest extends LinearOpMode{
     @Override
     public void runOpMode() {
         // Initialize the drive hardware & Turn on telemetry
-        robot.initialize(true);
+        robot.initialize(true, false);
 
         // Wait for driver to press start
         while(opModeInInit()) {

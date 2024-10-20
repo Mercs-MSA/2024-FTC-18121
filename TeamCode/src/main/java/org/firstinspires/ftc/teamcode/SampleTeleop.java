@@ -6,6 +6,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -30,7 +31,9 @@ public class SampleTeleop extends LinearOpMode
     @Override public void runOpMode()
     {
         // Initialize the drive hardware & Turn on telemetry
-        robot.initialize(true);
+        robot.initialize(true, true);
+
+        telemetry.setMsTransmissionInterval(50);
 
         // Wait for driver to press start
         while(opModeInInit()) {
@@ -40,6 +43,8 @@ public class SampleTeleop extends LinearOpMode
             robot.readSensors();
             telemetry.update();
         }
+
+        robot.activate();
 
         while (opModeIsActive())
         {
@@ -69,6 +74,9 @@ public class SampleTeleop extends LinearOpMode
 
             //  Drive the wheels based on the desired axis motions
             robot.moveRobot(drive, strafe, yaw);
+
+            telemetry.update();
+            robot.incrementOpModeCounter();
         }
     }
 }
