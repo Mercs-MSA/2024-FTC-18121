@@ -147,6 +147,7 @@ public class CompetitionTeleop extends LinearOpMode {
             else if (gamepad2.y){
                 /* This is the correct height to score the sample in the LOW BASKET */
                 armPosition = ARM_SCORE_SAMPLE_IN_LOW;
+                wrist.setPosition(WRIST_FOLDED_OUT);
             }
             else if (gamepad2.dpad_left) {
                 /* This turns off the intake, folds in the wrist, and moves the arm

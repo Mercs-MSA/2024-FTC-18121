@@ -113,7 +113,7 @@ public class SimplifiedOdometryRobot {
             // every time you call writeLine(); those fields will simply
             // contain the last value.
             datalog.opModeStatus.set("INIT");
-            datalog.battery.set(battery.getVoltage());
+            // datalog.battery.set(battery.getVoltage());
             datalog.writeLine();
         }
 
@@ -387,7 +387,7 @@ public class SimplifiedOdometryRobot {
 
         if (logData) {
             datalog.loopCounter.set(datalogCounter);
-            datalog.battery.set(battery.getVoltage());
+            // datalog.battery.set(battery.getVoltage());
             datalog.leftFrontEncoder.set(lF);
             datalog.rightFrontEncoder.set(rF);
             datalog.leftBackEncoder.set(lB);
