@@ -105,18 +105,6 @@ public class SimplifiedOdometryRobot {
         this.showTelemetry = showTelemetry;
         this.logData = logData;
 
-        // Initialize the datalog
-        if (this.logData) {
-            datalog = new Datalog("datalog_01");
-
-            // You do not need to fill every field of the datalog
-            // every time you call writeLine(); those fields will simply
-            // contain the last value.
-            datalog.opModeStatus.set("INIT");
-            // datalog.battery.set(battery.getVoltage());
-            datalog.writeLine();
-        }
-
         // Establish a proportional controller for each axis to calculate the required power to achieve a setpoint.
         this.driveController     = new ProportionalControl(DRIVE_GAIN, DRIVE_ACCEL, DRIVE_MAX_AUTO, DRIVE_TOLERANCE, DRIVE_DEADBAND, false, this.myOpMode, "drive");
         this.strafeController    = new ProportionalControl(STRAFE_GAIN, STRAFE_ACCEL, STRAFE_MAX_AUTO, STRAFE_TOLERANCE, STRAFE_DEADBAND, false, this.myOpMode, "strafe");
@@ -144,6 +132,18 @@ public class SimplifiedOdometryRobot {
         List<LynxModule> allHubs = myOpMode.hardwareMap.getAll(LynxModule.class);
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
+        // Initialize the datalog
+        if (this.logData) {
+            datalog = new Datalog("datalog_01");
+
+            // You do not need to fill every field of the datalog
+            // every time you call writeLine(); those fields will simply
+            // contain the last value.
+            datalog.opModeStatus.set("INIT");
+            datalog.battery.set(battery.getVoltage());
+            datalog.writeLine();
         }
     }
 
@@ -253,7 +253,7 @@ public class SimplifiedOdometryRobot {
         SparkFunOTOS.Pose2D targetPosition = findTargetPosition(targetDistance);
         // TODO This is where we can use targetPosition and currentPosition to find slope of target path. We can use slope in ReadSensors()
 
-        driveController.reset(targetDistance, power);   // achieve desired drive distance
+        driveController.reset(Math.abs(targetDistance), power);   // achieve desired drive distance
         strafeController.reset(0);              // Maintain zero strafe drift
         yawController.reset();                          // Maintain last turn heading
         holdTimer.reset();
@@ -271,6 +271,7 @@ public class SimplifiedOdometryRobot {
             } else {
                 holdTimer.reset();
             }
+            myOpMode.telemetry.update();
             myOpMode.sleep(10);
         }
         stopRobot();
@@ -285,23 +286,24 @@ public class SimplifiedOdometryRobot {
     public void strafe(double targetDistance, double power, double holdTime) {
         resetOdometry();
 
-        // if our target distance is negative, we're trying to drive backwards. But we're about to calculate
-        // distance driven, which will always be a positive number. So we need to track our intention to drive backwards
-        if (targetDistance < 0) {
+        // if our target distance is positive, we're trying to drive "backwards" because the robot defaults
+        // to left-strafe as positive, but the OTOS wants right-strafe to be positive. We're about to calculate
+        // distance driven, which will always be a positive number. So we need to track our intention to drive "backwards"
+        if (targetDistance > 0) {
             strafeInReverse = true;
         }
 
         SparkFunOTOS.Pose2D targetPosition = findTargetPosition(targetDistance);
 
         driveController.reset(0.0);             //  Maintain zero drive drift
-        strafeController.reset(targetDistance, power);  // Achieve desired Strafe distance
+        strafeController.reset(Math.abs(targetDistance), power);  // Achieve desired Strafe distance
         yawController.reset();                          // Maintain last turn angle
         holdTimer.reset();
 
         while (myOpMode.opModeIsActive() && readSensors()){
 
             // implement desired axis powers
-            moveRobot(driveController.getOutput(drivenDistance), strafeController.getOutput(strafedDistance), yawController.getOutput(heading));
+            moveRobot(driveController.getOutput(strafedDistance), strafeController.getOutput(drivenDistance), yawController.getOutput(heading));
 
             // Time to exit?
             if (strafeController.inPosition() && yawController.inPosition()) {
@@ -311,6 +313,7 @@ public class SimplifiedOdometryRobot {
             } else {
                 holdTimer.reset();
             }
+            myOpMode.telemetry.update();
             myOpMode.sleep(10);
         }
         stopRobot();
@@ -338,6 +341,7 @@ public class SimplifiedOdometryRobot {
             } else {
                 holdTimer.reset();
             }
+            myOpMode.telemetry.update();
             myOpMode.sleep(10);
         }
         stopRobot();
@@ -387,7 +391,7 @@ public class SimplifiedOdometryRobot {
 
         if (logData) {
             datalog.loopCounter.set(datalogCounter);
-            // datalog.battery.set(battery.getVoltage());
+            datalog.battery.set(battery.getVoltage());
             datalog.leftFrontEncoder.set(lF);
             datalog.rightFrontEncoder.set(rF);
             datalog.leftBackEncoder.set(lB);

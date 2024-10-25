@@ -40,14 +40,17 @@ public class SampleAutonomous extends LinearOpMode
         // Run Auto if stop was not pressed.
         if (opModeIsActive())
         {
-            robot.drive(48, 0.60, 0.25);
-            //robot.drive(  -12, 0.20, 0.25);
-            robot.turnTo(90, 0.60, 0.25);
-            //robot.drive(  -12, 0.20, 0.25);
-            //robot.turnTo(180, 0.20, 0.25);
-
-            robot.drive(25, 0.60, 0.25);
-            robot.strafe(45, 0.60, 0.25);
+            robot.drive(48, 0.60, 0.1);
+            robot.drive(-12, 0.60, 0.1);
+            robot.turnTo(180, 0.60, 0.1);
+            robot.drive(24, 0.60, 0.1);
+            robot.drive(-12, 0.60, 0.1);
+            robot.turnTo(90, 0.60, 0.1);
+            robot.strafe(36, 0.60, 0.1);
+            robot.strafe(-24, 0.60, 0.1);
+            robot.turnTo(270, 0.60, 0.1);
+            robot.strafe(24, 0.60, 0.1);
+            robot.strafe(-36, 0.60, 0.1);
         }
 
         telemetry.update();
