@@ -16,7 +16,7 @@ public class CompetitionTeleop extends LinearOpMode {
 
     final double SAFE_DRIVE_SPEED   = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     final double SAFE_STRAFE_SPEED  = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
-    final double SAFE_YAW_SPEED     = 0.5 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
+    final double SAFE_YAW_SPEED     = 0.7 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
 
     /* This constant is the number of encoder ticks for each degree of rotation of the arm.
     To find this, we first need to consider the total gear reduction powering our arm.
@@ -77,7 +77,7 @@ public class CompetitionTeleop extends LinearOpMode {
         intake = hardwareMap.get(CRServo.class, "hand");
         shoulder = hardwareMap.get(DcMotor.class, "shoulder");
 
-        robot.initialize(true, true);
+        robot.initialize(false, true);
 
         /* Setting zeroPowerBehavior to BRAKE enables a "brake mode". This causes the motor to slow down
         much faster when it is coasting. This creates a much more controllable drivetrain. As the robot
@@ -90,13 +90,15 @@ public class CompetitionTeleop extends LinearOpMode {
         /* Before starting the armMotor. We'll make sure the TargetPosition is set to 0.
         Then we'll set the RunMode to RUN_TO_POSITION. And we'll ask it to stop and reset encoder.
         If you do not have the encoder plugged into this motor, it will not run in this code. */
-        shoulder.setTargetPosition(0);
-        shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        // THIS CODE IS NOT LEGAL FOR COMPETITION! ROBOT CANNOT MOVE BETWEEN AUTO & TELEOP
+        //shoulder.setTargetPosition(0);
+        //shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         /* Make sure that the intake is off, and the wrist is folded in. */
-        intake.setPower(INTAKE_OFF);
-        wrist.setPosition(WRIST_FOLDED_IN);
+        // THIS CODE IS NOT LEGAL FOR COMPETITION! ROBOT CANNOT MOVE BETWEEN AUTO & TELEOP
+        //intake.setPower(INTAKE_OFF);
+        //wrist.setPosition(WRIST_FOLDED_IN);
 
         robot.readSensors();
 

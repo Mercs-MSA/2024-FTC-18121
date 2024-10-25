@@ -78,7 +78,7 @@ public class SimplifiedOdometryRobot {
     private double headingOffset      = 0; // Used to offset heading
 
     private double turnRate           = 0; // Latest Robot Turn Rate from IMU
-    private boolean showTelemetry     = true;
+    private boolean showTelemetry     = false;
 
     private final boolean otosEnabled = true;
 
@@ -211,8 +211,8 @@ public class SimplifiedOdometryRobot {
         if (showTelemetry) {
             myOpMode.telemetry.addData("Head Deg:Rate", "%5.2f %5.2f", rawHeading - headingOffset, turnRate);
             myOpMode.telemetry.addData("Dist Driven To Target", drivenDistance);
-            myOpMode.telemetry.addData("Target Offset", "%5.2f %5.2f %5.2f", pathStartPoint.x, pathStartPoint.y, pathStartPoint.h);
-            myOpMode.telemetry.addData("Target Raw", "%5.2f %5.2f %5.2f", currentRobotPosition.x, currentRobotPosition.y, currentRobotPosition.h);
+            myOpMode.telemetry.addData("Path Start", "%5.2f %5.2f %5.2f", pathStartPoint.x, pathStartPoint.y, pathStartPoint.h);
+            myOpMode.telemetry.addData("Current Pos", "%5.2f %5.2f %5.2f", currentRobotPosition.x, currentRobotPosition.y, currentRobotPosition.h);
         }
 
         return true;  // do this so this function can be included in the condition for a while loop to keep values fresh.

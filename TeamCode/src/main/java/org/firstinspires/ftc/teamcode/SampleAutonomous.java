@@ -27,7 +27,7 @@ public class SampleAutonomous extends LinearOpMode
     @Override public void runOpMode()
     {
         // Initialize the robot hardware & Turn on telemetry
-        robot.initialize(true, true);
+        robot.initialize(false, true);
 
         // Wait for driver to press start
         telemetry.addData(">", "Touch Play to run Auto");
