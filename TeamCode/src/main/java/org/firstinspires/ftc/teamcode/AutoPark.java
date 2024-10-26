@@ -17,9 +17,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * The IMU gyro is used to stabilize the heading during all motions
  */
 
-@Autonomous(name="Autonomous Test")
+@Autonomous(name="Strafe right to park")
 
-public class SampleAutonomous extends LinearOpMode
+public class AutoPark extends LinearOpMode
 {
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
@@ -43,20 +43,9 @@ public class SampleAutonomous extends LinearOpMode
             for (int i = 0; i < 100; i++) {
                 robot.shoulderWinchRobot(0);
             }
-
-                        robot.drive(48, 0.60, 0.1);
-//            robot.drive(-12, 0.60, 0.1);
-//            robot.turnTo(180, 0.60, 0.1);
-//            robot.drive(24, 0.60, 0.1);
-//            robot.drive(-12, 0.60, 0.1);
-//            robot.turnTo(90, 0.60, 0.1);
-//            robot.strafe(36, 0.60, 0.1);
-//            robot.strafe(-24, 0.60, 0.1);
-//            robot.turnTo(270, 0.60, 0.1);
-//            robot.strafe(24, 0.60, 0.1);
-//            robot.strafe(-36, 0.60, 0.1);
+            robot.drive(5, 0.60, 0.1);
+            robot.strafe(32, 0.60, 0.1);
         }
-        //sleep(5000);
         telemetry.update();
         robot.incrementOpModeCounter();
     }
