@@ -85,6 +85,7 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     final double ARM_ATTACH_HANGING_HOOK   = 120 * ARM_TICKS_PER_DEGREE;
     final double ARM_AUTON_CLIMB           = 135 * ARM_TICKS_PER_DEGREE;
     final double ARM_WINCH_ROBOT           = 15  * ARM_TICKS_PER_DEGREE;
+    final double ARM_RESET_TELEOP          = -115* ARM_TICKS_PER_DEGREE;
 
     /* Variables to store the speed the intake servo should be set at to intake, and deposit game elements. */
     final double INTAKE_COLLECT    = -1.0;
@@ -607,6 +608,13 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     public void shoulderAutonClimb(double leftStick) {
         armPosition = ARM_AUTON_CLIMB;
         this.shoulderMovement(leftStick);
+    }
+    public void shoulderResetTeleop(double leftStick) {
+        armPosition = ARM_RESET_TELEOP;
+        this.shoulderMovement(leftStick);
+    }
+    public void shoulderResetEncoder() {
+        shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 }
 

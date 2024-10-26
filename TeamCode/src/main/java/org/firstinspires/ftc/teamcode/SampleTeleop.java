@@ -24,7 +24,6 @@ public class SampleTeleop extends LinearOpMode
     final double SAFE_DRIVE_SPEED   = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     final double SAFE_STRAFE_SPEED  = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     final double SAFE_YAW_SPEED     = 0.5 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
-
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
 
@@ -49,6 +48,7 @@ public class SampleTeleop extends LinearOpMode
         while (opModeIsActive())
         {
             robot.readSensors();
+
 
             // Allow the driver to reset the gyro by pressing both small gamepad buttons
             if(gamepad1.start && gamepad1.back){

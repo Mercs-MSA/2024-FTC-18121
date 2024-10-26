@@ -14,6 +14,7 @@ public class CompetitionTeleop extends LinearOpMode {
     final double SAFE_DRIVE_SPEED   = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     final double SAFE_STRAFE_SPEED  = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     final double SAFE_YAW_SPEED     = 0.7 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
+    boolean ResetArm = false;
 
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
@@ -36,6 +37,15 @@ public class CompetitionTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             robot.readSensors();
+
+
+//            if (!ResetArm) {
+//                for (int i = 0; i < 100; i++) {
+//                    robot.shoulderResetTeleop(0);
+//                }
+//                robot.shoulderResetEncoder();
+//                ResetArm = true;
+//            }
 
             // Allow the driver to reset the gyro by pressing both small gamepad buttons
             if (gamepad1.start && gamepad1.back) {

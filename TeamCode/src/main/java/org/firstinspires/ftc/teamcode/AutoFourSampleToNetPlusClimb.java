@@ -7,6 +7,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 /*
@@ -16,9 +17,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * The IMU gyro is used to stabilize the heading during all motions
  */
 
-@Autonomous(name="Four Sample to Net Facing Net")
-
-public class AutoFourSampleToNet extends LinearOpMode
+@Autonomous(name="Four Sample + Climb")
+public class AutoFourSampleToNetPlusClimb extends LinearOpMode
 {
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
@@ -53,14 +53,14 @@ public class AutoFourSampleToNet extends LinearOpMode
             robot.strafe(-46, 0.80, 0.1);
             robot.strafe(46, 0.60, 0.1);
             robot.drive(6, 0.60, 0.1);
-            robot.strafe(-46, 0.80, 0.1);
-            robot.strafe(51, 0.60, 0.1);
-            robot.drive(-18, 0.60, 0.1);
-            robot.turnTo(180, 0.60, 0.1);
-            for (int i = 0; i < 100; i++) {
-                robot.shoulderAutonClimb(0);
-            }
-            robot.drive(18, 0.60, 0.1);
+            robot.strafe(-43, 0.80, 0.1);
+//            robot.strafe(54, 0.60, 0.1);
+//            robot.drive(-18, 0.60, 0.1);
+//            robot.turnTo(180, 0.60, 0.1);
+//            for (int i = 0; i < 100; i++) {
+//                robot.shoulderAutonClimb(0);
+//            }
+//            robot.drive(18, 0.60, 0.1);
         }
         telemetry.update();
         robot.incrementOpModeCounter();
