@@ -34,7 +34,7 @@ public class SimplifiedOdometryRobot {
 
     private static final double STRAFE_GAIN         = 0.05;    // Strength of lateral position control
     private static final double STRAFE_ACCEL        = 1.5;     // Acceleration limit.  Percent Power change per second.  1.0 = 0-100% power in 1 sec.
-    private static final double STRAFE_TOLERANCE    = 3;     // Controller is is "inPosition" if position error is < +/- this amount
+    private static final double STRAFE_TOLERANCE    = 2.5;     // Controller is is "inPosition" if position error is < +/- this amount
     private static final double STRAFE_DEADBAND     = 0.2;     // Error less than this causes zero output.  Must be smaller than DRIVE_TOLERANCE
     private static final double STRAFE_MAX_AUTO     = 0.6;     // "default" Maximum Lateral power limit during autonomous
 
@@ -83,6 +83,7 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     final double ARM_SCORE_SPECIMEN        = 160 * ARM_TICKS_PER_DEGREE;
     final double ARM_SCORE_SAMPLE_IN_LOW   = 160 * ARM_TICKS_PER_DEGREE;
     final double ARM_ATTACH_HANGING_HOOK   = 120 * ARM_TICKS_PER_DEGREE;
+    final double ARM_AUTON_CLIMB           = 135 * ARM_TICKS_PER_DEGREE;
     final double ARM_WINCH_ROBOT           = 15  * ARM_TICKS_PER_DEGREE;
 
     /* Variables to store the speed the intake servo should be set at to intake, and deposit game elements. */
@@ -601,6 +602,10 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     }
     public void shoulderWinchRobot(double leftStick) {
         armPosition = ARM_WINCH_ROBOT;
+        this.shoulderMovement(leftStick);
+    }
+    public void shoulderAutonClimb(double leftStick) {
+        armPosition = ARM_AUTON_CLIMB;
         this.shoulderMovement(leftStick);
     }
 }
