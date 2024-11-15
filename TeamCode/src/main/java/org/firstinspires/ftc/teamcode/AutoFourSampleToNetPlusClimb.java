@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * The IMU gyro is used to stabilize the heading during all motions
  */
 
-@Autonomous(name="Four Sample + Climb")
+@Autonomous(name="(Left Stop) Four Sample + Climb")
 public class AutoFourSampleToNetPlusClimb extends LinearOpMode
 {
     // get an instance of the "Robot" class.

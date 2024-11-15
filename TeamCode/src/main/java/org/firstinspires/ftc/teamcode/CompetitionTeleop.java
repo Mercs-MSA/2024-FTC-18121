@@ -15,7 +15,7 @@ public class CompetitionTeleop extends LinearOpMode {
     final double SAFE_STRAFE_SPEED  = 0.8 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     final double SAFE_YAW_SPEED     = 0.7 ; // Adjust this to your robot and your driver.  Slower usually means more accuracy.  Max value = 1.0
     boolean ResetArm = false;
-
+    boolean BackButtonPressed = false;
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
 
@@ -141,10 +141,22 @@ public class CompetitionTeleop extends LinearOpMode {
             } else if (gamepad1.dpad_down) {
                 drive = -SAFE_STRAFE_SPEED / 2.0;
             }
+            if (gamepad1.back) {
+                BackButtonPressed = true;
+//               robot.shoulder.setTargetPosition((int)(robot.shoulder.getCurrentPosition() - 5 * robot.ARM_TICKS_PER_DEGREE));
+                robot.shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                robot.shoulder.setPower(-0.3);
+            }
+            else if (BackButtonPressed) {
+                BackButtonPressed = false;
+                robot.shoulder.setPower(0.0);
+                robot.shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
 
             //  Drive the wheels based on the desired axis motions
             robot.moveRobot(drive, strafe, yaw);
 
+            telemetry.addData("Shoulder in degrees", robot.shoulder.getCurrentPosition() / robot.ARM_TICKS_PER_DEGREE);
             telemetry.update();
             robot.incrementOpModeCounter();
         }

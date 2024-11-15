@@ -16,15 +16,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * The IMU gyro is used to stabilize the heading during all motions
  */
 
-@Autonomous(name="(Left + Right Stop) Four Sample + Park")
-
-public class AutoFourSampleToNetPlusPark extends LinearOpMode
+@Autonomous(name="really Obvious Test Name")
+public class AutoTestShoulderMove extends LinearOpMode
 {
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
 
-    @Override public void runOpMode()
-    {
+    @Override public void runOpMode() {
         // Initialize the robot hardware & Turn on telemetry
         robot.initialize(true, true);
 
@@ -37,28 +35,14 @@ public class AutoFourSampleToNetPlusPark extends LinearOpMode
         robot.activate();
 
         // Run Auto if stop was not pressed.
-        if (opModeIsActive())
-        {
+        if (opModeIsActive()) {
             for (int i = 0; i < 100; i++) {
-                robot.shoulderWinchRobot(0);
+                robot.shoulderTestPosition(0);
+                telemetry.addData("Shoulder in degrees", robot.shoulder.getCurrentPosition() / robot.ARM_TICKS_PER_DEGREE);
+                telemetry.update();
             }
-            robot.drive(7, 0.60, 0.1);
-            robot.drive(-7, 0.60, 0.1);
-            robot.strafe(51, 0.60, 0.1);
-            robot.drive(11, 0.60, 0.1);
-            // TODO: Try using between 7 - 9 inches for this one, see what works
-            robot.strafe(-49, 0.80, 0.1);
-            robot.strafe(49, 0.60, 0.1);
-            robot.drive(14, 0.60, 0.1);
-            robot.strafe(-46, 0.80, 0.1);
-            robot.strafe(46, 0.60, 0.1);
-            robot.drive(6, 0.60, 0.1);
-            robot.strafe(-43, 0.80, 0.1);
-            robot.strafe(18, 0.60, 0.1);
-            robot.drive(-120, 0.60, 0.1);
-            robot.strafe(-18, 0.60, 0.1);
+            telemetry.update();
+            robot.incrementOpModeCounter();
         }
-        telemetry.update();
-        robot.incrementOpModeCounter();
     }
 }

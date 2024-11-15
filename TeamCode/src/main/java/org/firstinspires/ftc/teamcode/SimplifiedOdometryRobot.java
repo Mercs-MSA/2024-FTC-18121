@@ -60,7 +60,7 @@ reduction of ~50.9:1. (more precisely it is 250047/4913:1)
 We can multiply these two ratios together to get our final reduction of ~254.47:1.
 The motor's encoder counts 28 times per rotation. So in total you should see about 7125.16
 counts per rotation of the arm. We divide that by 360 to get the counts per degree. */
-    private static final double ARM_TICKS_PER_DEGREE =
+    public static final double ARM_TICKS_PER_DEGREE =
             28 // number of encoder ticks per rotation of the bare motor
                     * 250047.0 / 4913.0 // This is the exact gear ratio of the 50.9:1 Yellow Jacket gearbox
                     * 100.0 / 20.0 // This is the external gear reduction, a 20T pinion gear that drives a 100T hub-mount gear
@@ -85,6 +85,7 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     final double ARM_ATTACH_HANGING_HOOK   = 120 * ARM_TICKS_PER_DEGREE;
     final double ARM_AUTON_CLIMB           = 135 * ARM_TICKS_PER_DEGREE;
     final double ARM_WINCH_ROBOT           = 15  * ARM_TICKS_PER_DEGREE;
+    final double ARM_TEST_POSITION         = 20  * ARM_TICKS_PER_DEGREE;
     final double ARM_RESET_TELEOP          = -115* ARM_TICKS_PER_DEGREE;
 
     /* Variables to store the speed the intake servo should be set at to intake, and deposit game elements. */
@@ -125,7 +126,7 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
 
     private CRServo intake;
 
-    private DcMotor shoulder;
+    public DcMotor shoulder;
 
     private final LinearOpMode myOpMode;
     private SparkFunOTOS myOtos;
@@ -554,7 +555,7 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
         wrist.setPosition(WRIST_FOLDED_OUT);
     }
 
-    private void shoulderMovement(double leftStick) {
+    public void shoulderMovement(double leftStick) {
                 /* Here we create a "fudge factor" for the arm position.
             This allows you to adjust (or "fudge") the arm position slightly with the gamepad triggers.
             We want the left trigger to move the arm up, and right trigger to move the arm down.
@@ -608,6 +609,10 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     public void shoulderAutonClimb(double leftStick) {
         armPosition = ARM_AUTON_CLIMB;
         this.shoulderMovement(leftStick);
+    }
+    public void shoulderTestPosition(double leftStick) {
+    armPosition = ARM_TEST_POSITION;
+    this.shoulderMovement(leftStick);
     }
     public void shoulderResetTeleop(double leftStick) {
         armPosition = ARM_RESET_TELEOP;

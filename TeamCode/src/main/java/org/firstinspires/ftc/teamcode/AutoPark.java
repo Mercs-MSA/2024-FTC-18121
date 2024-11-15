@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
  * The IMU gyro is used to stabilize the heading during all motions
  */
 
-@Autonomous(name="Strafe right to park")
+@Autonomous(name="(Right Stop) Strafe right to park")
 
 public class AutoPark extends LinearOpMode
 {
