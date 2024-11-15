@@ -43,17 +43,16 @@ public class AutoFourSampleToNetPlusClimb extends LinearOpMode
                 robot.shoulderWinchRobot(0);
             }
             robot.drive(7, 0.60, 0.1);
-            robot.drive(-7, 0.60, 0.1);
+            robot.drive(-11, 0.60, 0.1);
             robot.strafe(51, 0.60, 0.1);
-            robot.drive(11, 0.60, 0.1);
-            // TODO: Try using between 7 - 9 inches for this one, see what works
-            robot.strafe(-49, 0.80, 0.1);
+            robot.drive(12, 0.60, 0.1);
+            robot.strafe(-49, 0.60, 0.1);
             robot.strafe(49, 0.60, 0.1);
-            robot.drive(14, 0.60, 0.1);
-            robot.strafe(-46, 0.80, 0.1);
+            robot.drive(9, 0.60, 0.1);
+            robot.strafe(-46, 0.60, 0.1);
             robot.strafe(46, 0.60, 0.1);
             robot.drive(6, 0.60, 0.1);
-            robot.strafe(-43, 0.80, 0.1);
+            robot.strafe(-43, 0.60, 0.1);
 //            robot.strafe(54, 0.60, 0.1);
 //            robot.drive(-18, 0.60, 0.1);
 //            robot.turnTo(180, 0.60, 0.1);
