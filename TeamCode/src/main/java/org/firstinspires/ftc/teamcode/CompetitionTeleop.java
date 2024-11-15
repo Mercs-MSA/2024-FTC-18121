@@ -141,17 +141,17 @@ public class CompetitionTeleop extends LinearOpMode {
             } else if (gamepad1.dpad_down) {
                 drive = -SAFE_STRAFE_SPEED / 2.0;
             }
-            if (gamepad1.back) {
-                BackButtonPressed = true;
-//               robot.shoulder.setTargetPosition((int)(robot.shoulder.getCurrentPosition() - 5 * robot.ARM_TICKS_PER_DEGREE));
-                robot.shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                robot.shoulder.setPower(-0.3);
-            }
-            else if (BackButtonPressed) {
-                BackButtonPressed = false;
-                robot.shoulder.setPower(0.0);
-                robot.shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            }
+//            if (gamepad1.back) {
+//                BackButtonPressed = true;
+////               robot.shoulder.setTargetPosition((int)(robot.shoulder.getCurrentPosition() - 5 * robot.ARM_TICKS_PER_DEGREE));
+//                robot.shoulder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//                robot.shoulder.setPower(-0.3);
+//            }
+//            else if (BackButtonPressed) {
+//                BackButtonPressed = false;
+//                robot.shoulder.setPower(0.0);
+//                robot.shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//            }
 
             //  Drive the wheels based on the desired axis motions
             robot.moveRobot(drive, strafe, yaw);
