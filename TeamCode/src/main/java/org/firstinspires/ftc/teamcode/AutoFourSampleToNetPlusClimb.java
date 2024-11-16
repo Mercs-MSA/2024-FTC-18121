@@ -44,14 +44,14 @@ public class AutoFourSampleToNetPlusClimb extends LinearOpMode
             }
             robot.drive(7, 0.60, 0.1);
             robot.drive(-11, 0.60, 0.1);
-            robot.strafe(51, 0.60, 0.1);
+            robot.strafe(48, 0.60, 0.1);
             robot.drive(12, 0.60, 0.1);
             robot.strafe(-49, 0.60, 0.1);
             robot.strafe(49, 0.60, 0.1);
             robot.drive(9, 0.60, 0.1);
             robot.strafe(-46, 0.60, 0.1);
             robot.strafe(46, 0.60, 0.1);
-            robot.drive(6, 0.60, 0.1);
+            robot.drive(10, 0.60, 0.1);
             robot.strafe(-43, 0.60, 0.1);
 //            robot.strafe(54, 0.60, 0.1);
 //            robot.drive(-18, 0.60, 0.1);
