@@ -41,14 +41,11 @@ public class AutoFourSampleToObservationCheaterEdition extends LinearOpMode
             for (int i = 0; i < 100; i++) {
                 robot.shoulderWinchRobot(0);
             }
-            robot.drive(20, 0.60, 0.1);
-            robot.drive(-8, 0.60, 0.1);
-            robot.strafe(-50, 0.60, 0.1);
-            robot.drive(19, 0.60, 0.1);
-            robot.drive(-6, 0.60, 0.1);
-            robot.strafe(-10, 0.60, 0.1);
+            robot.drive(-20, 0.60, 0.1);
             robot.drive(8, 0.60, 0.1);
-            robot.strafe(46, 0.60, 0.1);
+            robot.strafe(40, 0.60, 0.1);
+            robot.drive(-24, 0.60, 0.1);
+            robot.strafe(-50, 0.60, 0.1);
         }
         telemetry.update();
         robot.incrementOpModeCounter();

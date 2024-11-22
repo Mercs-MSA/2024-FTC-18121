@@ -42,15 +42,15 @@ public class AutoFourSampleToObservationPlusPark extends LinearOpMode
                 robot.shoulderWinchRobot(0);
             }
             robot.drive(20, 0.60, 0.1);
-            robot.drive(-8, 0.60, 0.1);
+            robot.drive(-10, 0.60, 0.1);
             robot.strafe(-50, 0.60, 0.1);
-            robot.drive(10, 0.60, 0.1);
+            robot.drive(12, 0.60, 0.1);
             robot.strafe(46, 0.60, 0.1);
             robot.strafe(-46, 0.60, 0.1);
-            robot.drive(9.5, 0.60, 0.1);
+            robot.drive(11, 0.60, 0.1);
             robot.strafe(46, 0.60, 0.1);
             robot.strafe(-46, 0.60, 0.1);
-            robot.drive(5, 0.60, 0.1);
+            robot.drive(6, 0.60, 0.1);
             robot.strafe(46, 0.60, 0.1);
         }
         telemetry.update();
