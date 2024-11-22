@@ -16,9 +16,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
  * The IMU gyro is used to stabilize the heading during all motions
  */
 
-@Autonomous(name="(Right + Park) Four Sample Observation + Park")
-
-public class AutoFourSampleToObservePlusPark extends LinearOpMode
+@Autonomous(name="(Right Stop) Four Sample Observe + Park")
+public class AutoFourSampleToObservationPlusPark extends LinearOpMode
 {
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
@@ -42,31 +41,17 @@ public class AutoFourSampleToObservePlusPark extends LinearOpMode
             for (int i = 0; i < 100; i++) {
                 robot.shoulderWinchRobot(0);
             }
-//            robot.drive(7, 0.60, 0.1);
-//            robot.drive(-11, 0.60, 0.1);
-//            robot.strafe(51, 0.60, 0.1);
-//            robot.drive(9, 0.60, 0.1);
-//            robot.strafe(-49, 0.80, 0.1);
-//            robot.strafe(49, 0.60, 0.1);
-//            robot.drive(9, 0.60, 0.1);
-//            robot.strafe(-46, 0.80, 0.1);
-//            robot.strafe(46, 0.60, 0.1);
-//            robot.drive(6, 0.60, 0.1);
-//            robot.strafe(-43, 0.80, 0.1);
-//            robot.strafe(18, 0.60, 0.1);
-//            robot.drive(-120, 0.60, 0.1);
-//            robot.strafe(-18, 0.60, 0.1);
-            robot.drive(9, 0.60, 0.1);
-            robot.strafe(-49, 0.60, 0.1);
-            robot.drive(14, 0.60, 0.1);
-            robot.strafe(47, 0.60, 0.1);
-            robot.strafe(-47, 0.60, 0.1);
-            robot.drive(11, 0.60, 0.1);
-            robot.strafe(47, 0.60, 0.1);
-            robot.strafe(-47, 0.60, 0.1);
-            robot.drive(7, 0.60, 0.1);
-            robot.strafe(49, 0.60, 0.1);
-            robot.strafe(-49, 0.60, 0.1);
+            robot.drive(20, 0.60, 0.1);
+            robot.drive(-8, 0.60, 0.1);
+            robot.strafe(-50, 0.60, 0.1);
+            robot.drive(10, 0.60, 0.1);
+            robot.strafe(46, 0.60, 0.1);
+            robot.strafe(-46, 0.60, 0.1);
+            robot.drive(9.5, 0.60, 0.1);
+            robot.strafe(46, 0.60, 0.1);
+            robot.strafe(-46, 0.60, 0.1);
+            robot.drive(5, 0.60, 0.1);
+            robot.strafe(46, 0.60, 0.1);
         }
         telemetry.update();
         robot.incrementOpModeCounter();
