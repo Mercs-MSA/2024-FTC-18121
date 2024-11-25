@@ -41,7 +41,7 @@ public class SampleAutonomous extends LinearOpMode
         if (opModeIsActive())
         {
             for (int i = 0; i < 100; i++) {
-                robot.shoulderWinchRobot(0);
+                robot.shoulderWinchRobot();
             }
 
                         robot.drive(48, 0.60, 0.1);

@@ -39,11 +39,11 @@ public class AutoTestClimb extends LinearOpMode
         if (opModeIsActive())
         {
             for (int i = 0; i < 100; i++) {
-                robot.shoulderWinchRobot(0);
+                robot.shoulderWinchRobot();
 
             }
             for (int i = 0; i < 100; i++) {
-                robot.shoulderAutonClimb(0);
+                robot.shoulderAutonClimb();
             }
             robot.drive(5, 0.60, 0.1);
         }

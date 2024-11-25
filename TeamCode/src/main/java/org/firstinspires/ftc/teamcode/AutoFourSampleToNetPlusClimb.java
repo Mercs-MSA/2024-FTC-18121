@@ -40,7 +40,7 @@ public class AutoFourSampleToNetPlusClimb extends LinearOpMode
         if (opModeIsActive())
         {
             for (int i = 0; i < 100; i++) {
-                robot.shoulderWinchRobot(0);
+                robot.shoulderWinchRobot();
             }
             robot.drive(7, 0.60, 0.1);
             robot.drive(-10, 0.60, 0.1);

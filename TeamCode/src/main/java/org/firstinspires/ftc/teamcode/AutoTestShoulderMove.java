@@ -37,7 +37,7 @@ public class AutoTestShoulderMove extends LinearOpMode
         // Run Auto if stop was not pressed.
         if (opModeIsActive()) {
             for (int i = 0; i < 100; i++) {
-                robot.shoulderTestPosition(0);
+                robot.shoulderTestPosition();
                 telemetry.addData("Shoulder in degrees", robot.shoulder.getCurrentPosition() / robot.ARM_TICKS_PER_DEGREE);
                 telemetry.update();
             }

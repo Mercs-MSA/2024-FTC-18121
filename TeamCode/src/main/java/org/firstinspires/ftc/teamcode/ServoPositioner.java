@@ -11,7 +11,7 @@ public class ServoPositioner extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             wrist = hardwareMap.get(Servo.class, "wrist");
-            wrist.setPosition(0.0);
+            wrist.setPosition(0.5);
         }
     }
 }

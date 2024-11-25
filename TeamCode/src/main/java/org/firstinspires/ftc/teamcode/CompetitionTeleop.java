@@ -18,6 +18,7 @@ public class CompetitionTeleop extends LinearOpMode {
     boolean BackButtonPressed = false;
     // get an instance of the "Robot" class.
     final private SimplifiedOdometryRobot robot = new SimplifiedOdometryRobot(this);
+    public Servo wrist = null;
 
     @Override
     public void runOpMode() {
@@ -36,6 +37,7 @@ public class CompetitionTeleop extends LinearOpMode {
         robot.activate();
 
         while (opModeIsActive()) {
+            wrist = hardwareMap.get(Servo.class, "wrist");
             robot.readSensors();
 
 
@@ -46,6 +48,10 @@ public class CompetitionTeleop extends LinearOpMode {
 //                robot.shoulderResetEncoder();
 //                ResetArm = true;
 //            }
+
+            if (!robot.WRIST_IS_IN) {
+                wrist.setPosition(0.25 * gamepad2.right_stick_x + 0.5);
+            }
 
             // Allow the driver to reset the gyro by pressing both small gamepad buttons
             if (gamepad1.start && gamepad1.back) {
@@ -66,40 +72,50 @@ public class CompetitionTeleop extends LinearOpMode {
                 robot.intakeStop();
             }
 
+            if (robot.armPosition != robot.ARM_COLLAPSED_INTO_ROBOT) {
+                robot.armPositionFudgeFactor = gamepad2.left_stick_y;
+            }
+
+
             if(gamepad2.right_bumper){
-                robot.shoulderCollect(gamepad2.left_stick_y);
+                robot.shoulderCollect();
                 robot.wristOut();
                 robot.intakeInward();
             }
             else if (gamepad2.left_bumper){
-                robot.shoulderClearBarrier(gamepad2.left_stick_y);
+                robot.shoulderClearBarrier();
             }
             else if (gamepad2.y){
                 /* This is the correct height to score the sample in the LOW BASKET */
-                robot.shoulderScoreSampleInLow(gamepad2.left_stick_y);
+                robot.shoulderScoreSampleInLow();
                 robot.wristOut();
+            }
+            else if (gamepad2.a) {
+                /* This is the correct height to score the sample in the LOW BASKET */
+                robot.shoulderScoreSampleInLow();
+                robot.wristIn();
             }
             else if (gamepad2.dpad_left) {
                 /* This turns off the intake, folds in the wrist, and moves the arm
                 back to folded inside the robot. This is also the starting configuration */
-                robot.shoulderCollapsedIntoRobot(gamepad2.left_stick_y);
+                robot.shoulderCollapsedIntoRobot();
                 robot.intakeStop();
                 robot.wristIn();
             }
             else if (gamepad2.dpad_right){
                 /* This is the correct height to score SPECIMEN on the HIGH CHAMBER */
-                robot.shoulderScoreSpecimen(gamepad2.left_stick_y);
+                robot.shoulderScoreSpecimen();
                 robot.wristIn();
             }
             else if (gamepad2.dpad_up){
                 /* This sets the arm to vertical to hook onto the LOW RUNG for hanging */
-                robot.shoulderAttachHangingHook(gamepad2.left_stick_y);
+                robot.shoulderAttachHangingHook();
                 robot.intakeStop();
                 robot.wristIn();
             }
             else if (gamepad2.dpad_down){
                 /* this moves the arm down to lift the robot up once it has been hooked */
-                robot.shoulderWinchRobot(gamepad2.left_stick_y);
+                robot.shoulderWinchRobot();
                 robot.intakeStop();
                 robot.wristIn();
             }
@@ -155,6 +171,7 @@ public class CompetitionTeleop extends LinearOpMode {
 
             //  Drive the wheels based on the desired axis motions
             robot.moveRobot(drive, strafe, yaw);
+            robot.shoulderMovement();
 
             telemetry.addData("Shoulder in degrees", robot.shoulder.getCurrentPosition() / robot.ARM_TICKS_PER_DEGREE);
             telemetry.update();

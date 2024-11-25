@@ -96,13 +96,14 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     /* Variables to store the positions that the wrist should be set to when folding in, or folding out. */
     final double WRIST_FOLDED_IN   = 0.8333;
     final double WRIST_FOLDED_OUT  = 0.5;
+    public boolean WRIST_IS_IN = true;
 
     /* A number in degrees that the triggers can adjust the arm position by */
     final double FUDGE_FACTOR = 15 * ARM_TICKS_PER_DEGREE;
 
     /* Variables that are used to set the arm to a specific position */
     double armPosition = (int)ARM_COLLAPSED_INTO_ROBOT;
-    double armPositionFudgeFactor;
+    double armPositionFudgeFactor = 0;
 
     // Public Members
     public double drivenDistance     = 0; // scaled axial distance (+ = forward)
@@ -550,12 +551,14 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
     }
     public void wristIn() {
         wrist.setPosition(WRIST_FOLDED_IN);
+        WRIST_IS_IN = true;
     }
     public void wristOut() {
         wrist.setPosition(WRIST_FOLDED_OUT);
+        WRIST_IS_IN = false;
     }
 
-    public void shoulderMovement(double leftStick) {
+    public void shoulderMovement() {
                 /* Here we create a "fudge factor" for the arm position.
             This allows you to adjust (or "fudge") the arm position slightly with the gamepad triggers.
             We want the left trigger to move the arm up, and right trigger to move the arm down.
@@ -563,60 +566,49 @@ counts per rotation of the arm. We divide that by 360 to get the counts per degr
             both triggers an equal amount, they cancel and leave the arm at zero. But if one is larger
             than the other, it "wins out". This variable is then multiplied by our FUDGE_FACTOR.
             The FUDGE_FACTOR is the number of degrees that we can adjust the arm by with this function. */
-        armPositionFudgeFactor = FUDGE_FACTOR * leftStick;
 
             /* Here we set the target position of our arm to match the variable that was selected
             by the driver.
             We also set the target velocity (speed) the motor runs at, and use setMode to run it.*/
-        shoulder.setTargetPosition((int) (armPosition + armPositionFudgeFactor));
+        shoulder.setTargetPosition((int) (armPosition + (FUDGE_FACTOR * armPositionFudgeFactor)));
 
         ((DcMotorEx) shoulder).setVelocity(2100);
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
     /* This is the intaking/collecting arm position */
-    public void shoulderCollect(double leftStick) {
+    public void shoulderCollect() {
         armPosition = ARM_COLLECT;
-        this.shoulderMovement(leftStick);
     }
     /* This is about 20° up from the collecting position to clear the barrier
                  Note here that we don't set the wrist position or the intake power when we
                  select this "mode", this means that the intake and wrist will continue what
                  they were doing before we clicked left bumper. */
-    public void shoulderClearBarrier(double leftStick) {
+    public void shoulderClearBarrier() {
         armPosition = ARM_CLEAR_BARRIER;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderScoreSampleInLow(double leftStick) {
+    public void shoulderScoreSampleInLow() {
         armPosition = ARM_SCORE_SAMPLE_IN_LOW;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderCollapsedIntoRobot(double leftStick) {
+    public void shoulderCollapsedIntoRobot() {
         armPosition = ARM_COLLAPSED_INTO_ROBOT;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderScoreSpecimen(double leftStick) {
+    public void shoulderScoreSpecimen() {
         armPosition = ARM_SCORE_SPECIMEN;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderAttachHangingHook(double leftStick) {
+    public void shoulderAttachHangingHook() {
         armPosition = ARM_ATTACH_HANGING_HOOK;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderWinchRobot(double leftStick) {
+    public void shoulderWinchRobot() {
         armPosition = ARM_WINCH_ROBOT;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderAutonClimb(double leftStick) {
+    public void shoulderAutonClimb() {
         armPosition = ARM_AUTON_CLIMB;
-        this.shoulderMovement(leftStick);
     }
-    public void shoulderTestPosition(double leftStick) {
-    armPosition = ARM_TEST_POSITION;
-    this.shoulderMovement(leftStick);
+    public void shoulderTestPosition() {
+        armPosition = ARM_TEST_POSITION;
     }
-    public void shoulderResetTeleop(double leftStick) {
+    public void shoulderResetTeleop() {
         armPosition = ARM_RESET_TELEOP;
-        this.shoulderMovement(leftStick);
     }
     public void shoulderResetEncoder() {
         shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
